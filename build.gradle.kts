@@ -15,8 +15,10 @@ plugins {
     id("io.spring.dependency-management") version "1.1.2"
 }
 
+val isRelease = false
+val baseVersion = "0.0.1"
 group = "kr.chuyong"
-version = "0.0.1"
+version = "${baseVersion}${if(isRelease) "" else "-SNAPSHOT"}"
 description = "Spring Boot Spigot Starter"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
@@ -79,8 +81,20 @@ dependencies {
 
 publishing {
     publications.create<MavenPublication>("maven") {
-        artifactId = "spigot-spring-boot"
+        artifactId = "spigot-spring"
         from(components["kotlin"])
+        artifact(tasks["kotlinSourcesJar"])
+    }
+
+    repositories {
+        maven {
+            val urlPath = if(isRelease)
+                uri("https://nexus.chuyong.kr/repository/maven-releases/")
+            else
+                uri("https://nexus.chuyong.kr/repository/maven-snapshots/")
+            name = "CChuYong"
+            url = uri(urlPath)
+        }
     }
 }
 
@@ -103,4 +117,16 @@ tasks.getByName<BootJar>("bootJar") {
 
 tasks.getByName<Jar>("jar") {
     enabled = true
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks {
+    withType<Jar> {
+        from(sourceSets["main"].allSource)
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
 }
