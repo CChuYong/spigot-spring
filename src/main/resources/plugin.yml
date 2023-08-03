@@ -1,0 +1,8 @@
+name: SpigotSpring
+author: CChuYong
+website: https://chuyong.kr
+version: 0.0.1
+main: chuyong.springspigot.SpringSpigotBootstrapper
+
+softdepend:
+  - HQFramework
