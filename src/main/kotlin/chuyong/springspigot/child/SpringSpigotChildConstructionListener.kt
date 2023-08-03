@@ -9,6 +9,7 @@ import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.SimplePluginManager
+import org.slf4j.Logger
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component
 @Component
 class SpringSpigotChildConstructionListener(
     private val springSpigotPluginRegistry: SpringSpigotPluginRegistry,
+    private val logger: Logger,
 ): ApplicationListener<ContextRefreshedEvent> {
 
     companion object {
@@ -56,9 +58,9 @@ class SpringSpigotChildConstructionListener(
         val plugin = event.applicationContext.getBean(Plugin::class.java)
 
         if(event.applicationContext != parentContext) {
+            logger.info("Registering events for plugin ${plugin.name}...")
             springSpigotPluginRegistry.registerPlugin(plugin as SpringSpigotChildPlugin)
             overwritePlugin(plugin)
-            println("Registering events for plugin ${plugin.name}...")
         }
 
         val eventService = parentContext.getBean(EventService::class.java)

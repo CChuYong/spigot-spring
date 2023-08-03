@@ -3,6 +3,7 @@ package chuyong.springspigot
 import chuyong.springspigot.child.SpigotSpringChildInitializer
 import chuyong.springspigot.child.SpigotSpringChildPluginData
 import chuyong.springspigot.child.SpringSpigotChildPlugin
+import chuyong.springspigot.child.SpringSpigotPluginRegistry
 import chuyong.springspigot.config.ConfigurationPropertySource
 import chuyong.springspigot.util.CompoundClassLoader
 import chuyong.springspigot.util.YamlPropertiesFactory
@@ -15,11 +16,12 @@ import net.bytebuddy.implementation.MethodCall
 import net.bytebuddy.implementation.MethodDelegation
 import net.bytebuddy.matcher.ElementMatchers
 import org.bukkit.Bukkit
+import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.plugin.java.JavaPluginLoader
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.aop.support.AopUtils
 import org.springframework.boot.Banner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
@@ -38,15 +40,21 @@ import java.net.URLClassLoader
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
-import java.util.function.Consumer
 
 class SpringSpigotBootstrapper : JavaPlugin() {
     private val masterClassLoader = CompoundClassLoader(Thread.currentThread().contextClassLoader, classLoader)
-    private val logger = LoggerFactory.getLogger(SpringSpigotBootstrapper::class.java)
     lateinit var parentContext: AnnotationConfigApplicationContext
+    private val childContexts = mutableListOf<ConfigurableApplicationContext>()
 
     companion object {
         lateinit var mainContext: AnnotationConfigApplicationContext
+    }
+
+    override fun onEnable() {
+        val logger = parentContext.getBean(Logger::class.java)
+        logger.info("Trying wire plugins...")
+        val count = parentContext.getBean(SpringSpigotPluginRegistry::class.java).wireContexts(childContexts)
+        logger.info("§f§lWired ${count} beans completed...")
     }
 
     override fun onLoad() {
@@ -59,8 +67,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
         Bukkit.getConsoleSender()
             .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lSpringSpigot Initialization Progress Initiated...")
 
-        val classLoaders = ArrayList<ClassLoader>()
-        classLoaders.add(masterClassLoader)
+        val globalClassLoader = CompoundClassLoader(masterClassLoader)
 
         val pluginClasses = Arrays.stream(Bukkit.getPluginManager().plugins)
             .filter { plugin: Plugin ->
@@ -70,66 +77,72 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             }
             .toList()
 
-        val javaClassLoader = Class.forName("org.bukkit.plugin.java.PluginClassLoader")
-        val f = javaClassLoader.getDeclaredField("file")
-        f.isAccessible = true
         Bukkit.getConsoleSender()
             .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lLoading Spring-Spigot added plugins...")
         val pluginDataMap = mutableMapOf<String, SpigotSpringChildPluginData>()
         val setEnabledMethod = JavaPlugin::class.java.getDeclaredField("isEnabled").apply {
             isAccessible = true
         }
-        pluginClasses.forEach(Consumer { plugin: Plugin ->
+
+        val pluginClassNames = mutableListOf<String>()
+        val pluginUrl = pluginClasses.map{ plugin ->
             try {
-                val file = f[plugin.javaClass.classLoader] as File
-                pluginDataMap[plugin.javaClass.name] = SpigotSpringChildPluginData.copyFromPlugin(plugin as JavaPlugin)
+                val data = SpigotSpringChildPluginData.copyFromPlugin(plugin as JavaPlugin)
+                pluginDataMap[plugin.javaClass.name] = data
                 setEnabledMethod.set(plugin, true)
-                logger.info("Disabling plugin " + plugin.name + " To load from SpringSpigot..")
+                Bukkit.getConsoleSender()
+                    .sendMessage("§f§l[§6SpringSpigot§f§l] Disabling plugin " + plugin.name + " To load from SpringSpigot..")
+                pluginClassNames.add(plugin.javaClass.name)
                 unloadPlugin(plugin)
-                //Bukkit.getPluginManager().disablePlugin(plugin)
-                val newLoader = URLClassLoader(arrayOf(file.toURI().toURL()), masterClassLoader)
-                classLoaders.add(newLoader)
+                data.file.toURI().toURL()
             } catch (e: Exception) {
                 throw RuntimeException(e)
             }
-        })
-        val combinedLoader = CompoundClassLoader(classLoaders)
+        }
+        val crossPluginLoader = URLClassLoader(pluginUrl.toTypedArray(), masterClassLoader)
+        globalClassLoader.addLoader(crossPluginLoader)
+
         Bukkit.getConsoleSender()
             .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lBaking Custom ClassLoader Completed...")
 
-        val executor = Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("springspigot-initializer").build())
+        val executor = Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("SpringSpigot Bootstrap").build())
+        val globalResourceLoader = DefaultResourceLoader(globalClassLoader)
         CompletableFuture.runAsync({
             Bukkit.getConsoleSender()
                 .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lLoading SpringBoot...")
-            Thread.currentThread().contextClassLoader = masterClassLoader
+            Thread.currentThread().contextClassLoader = globalClassLoader
 
-            SpringApplicationBuilder(DefaultResourceLoader(combinedLoader), SpringSpigotApplication::class.java).apply {
+            val applicationBuilder = SpringApplicationBuilder(
+                globalResourceLoader,
+                SpringSpigotApplication::class.java
+            ).apply {
                 bannerMode(Banner.Mode.OFF)
                 initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
                     val propertySources= it.environment.propertySources
                     propertySources.addLast(ConfigurationPropertySource(getConfig()))
                     propertySources.addLast(
-                    PropertiesPropertySource("main-yaml", getApplicationProperties()))
+                    PropertiesPropertySource("main-yaml", getPrimaryApplicationProperties()))
 
                     val props = Properties()
                     props["spigot.plugin"] = getName()
                     propertySources.addLast(PropertiesPropertySource("spring-bukkit", props))
                     mainContext = it as AnnotationConfigApplicationContext
                 })
-                val childClasses = pluginClasses.mapNotNull {
-                    val targetClazz = AopUtils.getTargetClass(it)
-                    try {
-                        Class.forName(targetClazz.name, true, combinedLoader)
-                    } catch (ex: Exception) {
-                        null
-                    }
-                }
-                val pluginConstructor = SpringSpigotChildPlugin::class.java.getConstructor()
-                val loadeablePlugins = childClasses.associate { pluginClazz ->
-                    val data = pluginDataMap[pluginClazz.name]
+
+               parentContext = run() as AnnotationConfigApplicationContext
+            }
+            val logger = parentContext.getBean(Logger::class.java)
+            logger.info("Main context initialize completed! Starting to load plugins...")
+
+            val pluginConstructor = SpringSpigotChildPlugin::class.java.getConstructor()
+            val plugins = pluginClassNames.mapNotNull { pluginClazzName ->
+                val data = pluginDataMap[pluginClazzName]!!
+                try{
+                    val pluginClazz = Class.forName(pluginClazzName, true, crossPluginLoader)
+                    logger.info("Loading Plugin ${data.description.name}")
                     val newPluginClazz = ByteBuddy()
                         .subclass(SpringSpigotChildPlugin::class.java, ConstructorStrategy.Default.NO_CONSTRUCTORS)
-                        .name(pluginClazz.name + "\$Buddy")
+                        .name(pluginClazz.name + "\$ByteBuddy")
                         .annotateType(AnnotationDescription
                             .Builder
                             .ofType(SpringBootApplication::class.java)
@@ -156,48 +169,41 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                         .intercept(MethodDelegation.to(pluginClazz))
                         .make()
 
-                    newPluginClazz.load(combinedLoader).loaded to data
+                    val newClazz = newPluginClazz.load(globalClassLoader).loaded
+                    val context = applicationBuilder.child(newClazz)
+                        .bannerMode(Banner.Mode.OFF)
+                        .initializers(SpigotSpringChildInitializer(data))
+                        .resourceLoader(globalResourceLoader)
+                        .run()
+                    logger.info("Loaded Plugin ${data.description.name}")
+                    data to context
+                }catch(e: Throwable) {
+                    logger.info("Error while loading Plugin ${data.description.name}")
+                    e.printStackTrace()
+                    return@mapNotNull null
                 }
-                val createdClasses = loadeablePlugins.keys.toList()
-               parentContext = if(createdClasses.isNotEmpty()) {
-                   createdClasses.drop(1).fold(
-                        child(createdClasses.first())
-                            .bannerMode(Banner.Mode.OFF)
-                            .initializers(SpigotSpringChildInitializer(loadeablePlugins[createdClasses.first()]!!))
-                            .resourceLoader(DefaultResourceLoader(combinedLoader))
-                          //  .listeners(SpringSpigotChildConstructionListener())
-                    ) { acc, clazz ->
-                        acc
-                            .sibling(clazz)
-                            .bannerMode(Banner.Mode.OFF)
-                            .initializers(SpigotSpringChildInitializer(loadeablePlugins[createdClasses.first()]!!))
-                            .resourceLoader(DefaultResourceLoader(combinedLoader))
-                         //   .listeners(SpringSpigotChildConstructionListener())
-                    }
-                } else {
-                    this
-                }.run() as AnnotationConfigApplicationContext
             }
 
-            Bukkit.getConsoleSender()
-                .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lInitialize SpringBoot Application Context Completed...")
-
+            logger.info("Loading ThirdParty Plugins completed!")
+            childContexts.addAll(plugins.map { it.second })
 
             watch.stop()
-            Bukkit.getConsoleSender()
-                .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lSpringSpigot Initialization Progress Finished. Elapsed Time: " + watch.totalTimeMillis + "ms")
+            logger.info("SpigotSpring Post-Initialization process finished. Elapsed Time: " + watch.totalTimeMillis + "ms")
         }, executor).get()
         executor.shutdown();
     }
 
     override fun onDisable() {
-        mainContext.close()
+        childContexts.forEach {
+            it.close()
+        }
+        parentContext.close()
     }
 
-    private fun getApplicationProperties(): Properties {
-        val configurationFile = FileSystemResource("application.yml")
+    private fun getPrimaryApplicationProperties(): Properties {
+        if(!dataFolder.exists()) dataFolder.mkdirs()
+        val configurationFile = FileSystemResource(File(dataFolder, "application.yml"))
         if(!configurationFile.exists()) {
-            logger.warn("application.yml not found. Creating new one...")
             configurationFile.file.createNewFile()
         }
         return YamlPropertiesFactory.loadYamlIntoProperties(configurationFile)!!

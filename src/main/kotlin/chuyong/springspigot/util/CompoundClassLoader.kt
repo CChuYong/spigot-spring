@@ -6,15 +6,19 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 class CompoundClassLoader : ClassLoader {
-    private val classLoaders: Collection<ClassLoader>
+    private val classLoaders: ArrayList<ClassLoader>
     private val classCache = ConcurrentHashMap<String, Class<*>>()
 
     constructor(vararg loaders: ClassLoader) {
-        classLoaders = listOf(*loaders)
+        classLoaders = arrayListOf(*loaders)
     }
 
     constructor(loaders: Collection<ClassLoader>) {
-        classLoaders = loaders
+        classLoaders = ArrayList(loaders)
+    }
+
+    fun addLoader(loader: ClassLoader){
+        classLoaders.add(loader)
     }
 
     override fun getResource(name: String): URL? {
