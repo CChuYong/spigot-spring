@@ -3,7 +3,25 @@ A Minecraft Plugin integrates Spigot with SpringBoot with multiple plugins.
 This plugin based on [mcspring-boot](https://github.com/Alan-Gomes/mcspring-boot).
 
 ## Getting Started
-Simply put `@EnableSpringSpigotSupport` to your JavaPlugin class then you are ready to go.  
+First, add dependency to your gradle files. Following example is Gradle Kotlin DSL (.kts)
+
+```groovy
+repositories {
+      maven("https://nexus.chuyong.kr/repository/maven-snapshots/")
+}
+
+dependencies {
+    implementation("kr.chuyong:spigot-spring:0.0.1-SNAPSHOT")
+}
+```
+
+Then Simply put `@EnableSpringSpigotSupport` to your JavaPlugin class. After that, you are ready to go. 
+```kotlin
+@EnableSpringSpigotSupport
+class MySpecialPlugin : JavaPlugin() {
+    //Body Not need..
+}
+```
 
 
 ## Features
