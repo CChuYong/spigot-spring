@@ -16,16 +16,17 @@ import java.util.stream.Stream
 class EventService(
     private val eventExecutor: SpringEventExecutor,
     private val server: Server,
-    private val plugin: Plugin,
+   // private val plugin: Plugin,
 ) {
-    fun registerEvents(listener: Listener) {
-        getListenerMethods(listener).forEach { method: Method -> registerEvents(listener, method) }
+    fun registerEvents(plugin: Plugin, listener: Listener) {
+        getListenerMethods(listener).forEach { method: Method ->
+            registerEvents(plugin, listener, method)
+        }
     }
 
-    private fun registerEvents(listener: Listener, method: Method) {
+    private fun registerEvents(plugin: Plugin, listener: Listener, method: Method) {
         val handler = method.getAnnotation(EventHandler::class.java)
         val eventType = method.parameters[0].type as Class<out Event?>
-        // System.out.println("====================== " + method.getName() + " === " + listener.getClass().getName() + " === " + eventType.getName());
         server.pluginManager.registerEvent(
             eventType,
             listener,

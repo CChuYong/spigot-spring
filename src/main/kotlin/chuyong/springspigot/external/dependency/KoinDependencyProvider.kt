@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
 class KoinDependencyProvider : ExternalDependencyProvider {
     @OptIn(KoinInternalApi::class)
     private val scope: Scope?
-        private get() {
+        get() {
             val koinApplication = getKoinApplicationOrNull()
             return koinApplication?.koin?.scopeRegistry?.rootScope
         }

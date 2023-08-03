@@ -2,6 +2,7 @@ package chuyong.springspigot.scheduler
 
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitScheduler
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
 @Service

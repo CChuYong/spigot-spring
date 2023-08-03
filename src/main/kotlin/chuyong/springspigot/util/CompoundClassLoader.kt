@@ -52,7 +52,12 @@ class CompoundClassLoader : ClassLoader {
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String): Class<*> {
         for (loader in classLoaders) {
-            return loader.loadClass(name)
+            try{
+                return loader.loadClass(name)
+            }catch(e: ClassNotFoundException){
+                //not here
+            }
+
         }
         throw ClassNotFoundException()
     }

@@ -11,19 +11,12 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.scheduling.TaskScheduler
 
 @Configuration
 @ConditionalOnClass(Bukkit::class)
-class SpigotAutoConfiguration {
-    companion object {
-        @JvmStatic
-        @Bean
-        fun scopeBeanFactoryPostProcessor(): BeanFactoryPostProcessor {
-            return ScopePostProcessor()
-        }
-    }
-
+class SpigotAutoConfiguration{
     @Bean
     fun taskScheduler(
         scheduler: SchedulerService,

@@ -64,12 +64,12 @@ dependencies {
     api("com.github.f4b6a3:ulid-creator:5.2.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
 
-    api("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1")
+    api("com.querydsl:querydsl-jpa:5.0.0:jakarta")
     implementation("mysql:mysql-connector-java:8.0.28")
     implementation("com.h2database:h2:1.4.200")
-    api("com.querydsl:querydsl-jpa:5.0.0:jakarta")
-    kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
-    kapt("com.querydsl:querydsl-kotlin-codegen:5.0.0")
+    implementation("net.bytebuddy:byte-buddy:1.14.5")
+
 
     compileOnly("io.insert-koin:koin-core:3.4.2")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

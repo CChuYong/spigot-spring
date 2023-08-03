@@ -1,9 +1,11 @@
 package chuyong.springspigot
 
-import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 
 
 @EnableScheduling
-@SpringBootApplication(scanBasePackages = ["chuyong.springspigot"])
+@ComponentScan(basePackages = ["chuyong.springspigot"])
+@Configuration
 class SpringSpigotApplication
