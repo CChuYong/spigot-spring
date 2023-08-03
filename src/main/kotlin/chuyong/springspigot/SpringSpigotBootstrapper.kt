@@ -191,10 +191,10 @@ class SpringSpigotBootstrapper : JavaPlugin() {
     }
 
     override fun onDisable() {
-        parentContext.close()
+        mainContext.close()
     }
 
-    fun getApplicationProperties(): Properties {
+    private fun getApplicationProperties(): Properties {
         val configurationFile = FileSystemResource("application.yml")
         if(!configurationFile.exists()) {
             logger.warn("application.yml not found. Creating new one...")

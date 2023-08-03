@@ -3,9 +3,11 @@ package chuyong.springspigot.util
 import java.io.InputStream
 import java.net.URL
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 class CompoundClassLoader : ClassLoader {
     private val classLoaders: Collection<ClassLoader>
+    private val classCache = ConcurrentHashMap<String, Class<*>>()
 
     constructor(vararg loaders: ClassLoader) {
         classLoaders = listOf(*loaders)
@@ -51,9 +53,14 @@ class CompoundClassLoader : ClassLoader {
 
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String): Class<*> {
+        classCache[name]?.apply {
+            return this
+        }
         for (loader in classLoaders) {
             try{
-                return loader.loadClass(name)
+                return loader.loadClass(name).apply {
+                    classCache[this.name] = this
+                }
             }catch(e: ClassNotFoundException){
                 //not here
             }

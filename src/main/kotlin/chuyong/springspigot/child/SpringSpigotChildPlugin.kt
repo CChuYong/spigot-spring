@@ -15,6 +15,7 @@ import org.bukkit.plugin.PluginDescriptionFile
 import org.bukkit.plugin.PluginLoader
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+import org.springframework.context.annotation.Bean
 import java.io.*
 import java.net.URL
 import java.util.logging.Level
@@ -27,8 +28,10 @@ open class SpringSpigotChildPlugin: Plugin {
     @Autowired
     lateinit var context: ApplicationContext
 
+    val pluginLoader = SpigotSpringChildPluginLoader(this)
+
     @PostConstruct
-    fun onLoadPluginBias() {
+    fun onPluginLoad() {
 
     }
 
@@ -38,11 +41,11 @@ open class SpringSpigotChildPlugin: Plugin {
         p2: String,
         p3: Array<out String>,
     ): MutableList<String>? {
-        TODO("Not yet implemented")
+        return mutableListOf()
     }
 
     override fun onCommand(p0: CommandSender, p1: Command, p2: String, p3: Array<out String>): Boolean {
-        TODO("Not yet implemented")
+        return false
     }
 
     override fun getDataFolder(): File {
@@ -53,6 +56,7 @@ open class SpringSpigotChildPlugin: Plugin {
         return data.description
     }
 
+    @Bean
     override fun getConfig(): FileConfiguration {
         if (data.newConfig == null) {
             reloadConfig()
@@ -132,11 +136,11 @@ open class SpringSpigotChildPlugin: Plugin {
     }
 
     override fun getPluginLoader(): PluginLoader {
-        TODO("Not yet implemented")
+        return pluginLoader
     }
 
     override fun getServer(): Server {
-        TODO("Not yet implemented")
+        return context.getBean(Server::class.java)
     }
 
     override fun isEnabled(): Boolean {
@@ -171,6 +175,7 @@ open class SpringSpigotChildPlugin: Plugin {
         TODO("Not yet implemented")
     }
 
+    @Bean
     override fun getLogger(): Logger {
         return Bukkit.getLogger()
     }

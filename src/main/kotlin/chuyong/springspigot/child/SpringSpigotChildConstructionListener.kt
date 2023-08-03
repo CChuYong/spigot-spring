@@ -16,7 +16,9 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-class SpringSpigotChildConstructionListener: ApplicationListener<ContextRefreshedEvent> {
+class SpringSpigotChildConstructionListener(
+    private val springSpigotPluginRegistry: SpringSpigotPluginRegistry,
+): ApplicationListener<ContextRefreshedEvent> {
 
     companion object {
         private val initializedContext = HashSet<ApplicationContext>();
@@ -52,8 +54,13 @@ class SpringSpigotChildConstructionListener: ApplicationListener<ContextRefreshe
         ).values
 
         val plugin = event.applicationContext.getBean(Plugin::class.java)
-        overwritePlugin(plugin)
-        println("Registering events for plugin ${plugin.name}...")
+
+        if(event.applicationContext != parentContext) {
+            springSpigotPluginRegistry.registerPlugin(plugin as SpringSpigotChildPlugin)
+            overwritePlugin(plugin)
+            println("Registering events for plugin ${plugin.name}...")
+        }
+
         val eventService = parentContext.getBean(EventService::class.java)
         beans.forEach{ listener->
             eventService.registerEvents(

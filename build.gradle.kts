@@ -58,14 +58,14 @@ kotlin {
 }
 
 dependencies {
-    api("org.springframework.boot:spring-boot-starter:3.1.1")
-    api("org.springframework.boot:spring-boot-starter-aop:3.1.1")
-    api("org.apache.commons:commons-lang3:3.12.0")
-    api("com.github.f4b6a3:ulid-creator:5.2.0")
+    implementation("org.springframework.boot:spring-boot-starter:3.1.1")
+    implementation("org.springframework.boot:spring-boot-starter-aop:3.1.1")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("com.github.f4b6a3:ulid-creator:5.2.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1")
-    api("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
     implementation("mysql:mysql-connector-java:8.0.28")
     implementation("com.h2database:h2:1.4.200")
     implementation("net.bytebuddy:byte-buddy:1.14.5")
