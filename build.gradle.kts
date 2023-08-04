@@ -69,10 +69,10 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.28")
     implementation("com.h2database:h2:1.4.200")
     implementation("net.bytebuddy:byte-buddy:1.14.5")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
 
     compileOnly("io.insert-koin:koin-core:3.4.2")
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     compileOnly("kr.hqservice:hqframework-global-core:1.0.0-SNAPSHOT")
     compileOnly("kr.hqservice:hqframework-bukkit-core:1.0.0-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
