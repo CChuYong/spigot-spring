@@ -3,7 +3,6 @@ package chuyong.springspigot
 import chuyong.springspigot.child.*
 import chuyong.springspigot.config.ConfigurationPropertySource
 import chuyong.springspigot.util.CompoundClassLoader
-import chuyong.springspigot.util.CustomURLClassLoader
 import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import net.bytebuddy.ByteBuddy
