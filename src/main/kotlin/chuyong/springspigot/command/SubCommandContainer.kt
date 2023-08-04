@@ -31,11 +31,8 @@ class SubCommandContainer(
             } else {
                 //남은 args가 있는데, 더이상 뎁스가 없음 -> 추가 args인지 판별!
                 val remainingItems = remainingArgs.size + 1
-                //System.out.println("Remain : " + remainingItems + " wrapper " + invokeWrapper);
                 if (invokeWrapper == null) return null
-                if (config.minArgs >= remainingItems && config
-                        .maxArgs <= remainingItems
-                ) {
+                if (config.minArgs >= remainingItems && config.maxArgs <= remainingItems) {
                     this
                 } else {
                     null
@@ -55,17 +52,17 @@ class SubCommandContainer(
     }
 
     // "a b c"
-    fun addCommand(args: Queue<String>, ano: CommandConfig?, mtd: Method?, cl: Any?): SubCommandContainer {
+    fun addCommand(args: Queue<String>, ano: CommandConfig, mtd: Method, cl: Any): SubCommandContainer {
         return if (args.isEmpty()) {
             if (invokeWrapper != null) {
-                throw RuntimeException("Duplicated command entry! Command: /" + fullKey)
+                throw RuntimeException("Duplicated command entry! Command: /$fullKey")
             }
-            invokeWrapper = InvokeWrapper(mtd!!, cl!!, ano!!)
+            invokeWrapper = InvokeWrapper(mtd, cl, ano)
             this
         } else {
             val nextKey = args.poll()
             childCommandMap
-                .computeIfAbsent(nextKey) { e: String? -> SubCommandContainer(this, nextKey, commandDepth + 1) }
+                .computeIfAbsent(nextKey) { _ -> SubCommandContainer(this, nextKey, commandDepth + 1) }
                 .addCommand(args, ano, mtd, cl)
         }
     }

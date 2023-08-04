@@ -12,7 +12,7 @@ import java.util.regex.Pattern
 
 class SpigotSpringChildPluginLoader(
     val plugin: SpringSpigotChildPlugin,
-): PluginLoader {
+) : PluginLoader {
     override fun loadPlugin(file: File): Plugin {
         return plugin
     }
@@ -38,7 +38,7 @@ class SpigotSpringChildPluginLoader(
 
     override fun disablePlugin(plugin: Plugin) {
         plugin.logger.info("Closing plugin ${plugin.name}...")
-        if(this.plugin.context is AbstractApplicationContext) {
+        if (this.plugin.context is AbstractApplicationContext) {
             (this.plugin.context as AbstractApplicationContext).close()
         }
     }

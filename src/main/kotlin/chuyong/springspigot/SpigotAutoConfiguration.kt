@@ -7,16 +7,14 @@ import org.bukkit.Server
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitScheduler
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
 import org.springframework.scheduling.TaskScheduler
 
 @Configuration
 @ConditionalOnClass(Bukkit::class)
-class SpigotAutoConfiguration{
+class SpigotAutoConfiguration {
     @Bean
     fun taskScheduler(
         scheduler: SchedulerService,

@@ -16,7 +16,7 @@ import java.util.stream.Stream
 class EventService(
     private val eventExecutor: SpringEventExecutor,
     private val server: Server,
-   // private val plugin: Plugin,
+    // private val plugin: Plugin,
 ) {
     fun registerEvents(plugin: Plugin, listener: Listener) {
         getListenerMethods(listener).forEach { method: Method ->

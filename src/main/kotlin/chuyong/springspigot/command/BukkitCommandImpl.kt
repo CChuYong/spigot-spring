@@ -10,19 +10,17 @@ import org.bukkit.entity.Player
 import java.lang.reflect.Method
 import java.util.*
 
-class BukkitCommandImpl(baseLabel: String?) : BukkitCommand(baseLabel!!) {
-    val primaryContainer = SubCommandContainer(null, label, 0)
-    var baseConfig: SuperCommandConfig? = null
+class BukkitCommandImpl(
+    baseLabel: String,
+    private val baseConfig: SuperCommandConfig? = null,
+) : BukkitCommand(baseLabel) {
+    private val primaryContainer = SubCommandContainer(null, label, 0)
 
     init {
         description = ""
-        usageMessage = ""
+        usageMessage = baseConfig?.usage ?: ""
         permission = ""
         aliases = ArrayList()
-    }
-
-    constructor(baseLabel: String?, baseConfig: SuperCommandConfig?) : this(baseLabel) {
-        this.baseConfig = baseConfig
     }
 
     private fun getContainer(args: Array<String>): SubCommandContainer? {
@@ -33,10 +31,15 @@ class BukkitCommandImpl(baseLabel: String?) : BukkitCommand(baseLabel!!) {
         return primaryContainer.getTapCompleteContainer(LinkedList(listOf(*args)))
     }
 
-    fun addCommand(subcommand: Array<String>, ano: CommandConfig?, mtd: Method?, cl: Any?): SubCommandContainer {
-        val commandList = LinkedList(Arrays.asList(*subcommand))
+    fun addCommand(
+        subcommand: Array<String>,
+        ano: CommandConfig,
+        method: Method,
+        beanObject: Any
+    ): SubCommandContainer {
+        val commandList = LinkedList(listOf(*subcommand))
         commandList.removeIf { element: String -> element == "" }
-        return primaryContainer.addCommand(commandList, ano, mtd, cl)
+        return primaryContainer.addCommand(commandList, ano, method, beanObject)
     }
 
     override fun execute(sender: CommandSender, commandLabel: String, args: Array<String>): Boolean {
@@ -65,7 +68,7 @@ class BukkitCommandImpl(baseLabel: String?) : BukkitCommand(baseLabel!!) {
         if (keys.isEmpty() && sc.config.defaultSuggestion) {
             return super.tabComplete(sender, alias, args)
         }
-        if (args.size != 0) {
+        if (args.isNotEmpty()) {
             val lastArgs = args[args.size - 1]
             return keys.stream().filter { key: String -> key.startsWith(lastArgs) }.toList()
         }
@@ -73,15 +76,17 @@ class BukkitCommandImpl(baseLabel: String?) : BukkitCommand(baseLabel!!) {
     }
 
     private fun checkPermValid(sender: CommandSender, commandConfig: CommandConfig): Boolean {
-        if (opCondition(commandConfig) && !sender.isOp) {
+        if (commandConfig.op && !sender.isOp || (baseConfig?.op == true && !sender.isOp)) {
             sender.sendMessage(getPrefix(commandConfig) + noPermMessage(commandConfig))
             return false
         }
-        if (!consoleCondition(commandConfig) && sender !is Player) {
+        if (!commandConfig.console && sender !is Player || (baseConfig?.console == false && sender !is Player)) {
             sender.sendMessage(getPrefix(commandConfig) + noConsoleMessage(commandConfig))
             return false
         }
-        if (commandConfig.perm != "" && !sender.hasPermission(commandConfig.perm)) {
+        if (commandConfig.perm != "" && !sender.hasPermission(commandConfig.perm) || ((baseConfig?.perm
+                ?: "") != "" && !sender.hasPermission(baseConfig?.perm ?: ""))
+        ) {
             sender.sendMessage(getPrefix(commandConfig) + noPermMessage(commandConfig))
             return false
         }
@@ -91,19 +96,13 @@ class BukkitCommandImpl(baseLabel: String?) : BukkitCommand(baseLabel!!) {
     private fun executeMethod(sc: SubCommandContainer, sender: CommandSender, args: Array<String?>) {
         var uuid: UUID? = null
         if (sender is Player) uuid = sender.uniqueId
-        val uk = uuid
-        val target = paramBuilder(sc.method, getParamContainer(sender, args, name), uuid)
+        val target = paramBuilder(sc.method, getParamContainer(sender, args, name))
         try {
             currentContext = CommandContext(sender)
             sc.method.invoke(sc.pathClass, *target)
-        } catch (e: Exception) {
-            //Must handled front
-            e.printStackTrace()
         } finally {
             clearContext()
         }
-
-        //  ReflectionUtils.invokeMethod(sc.getMethod(), sc.getPathClass(), target);
     }
 
     private fun getParamContainer(sender: CommandSender, args: Array<String?>, label: String): HashMap<Class<*>, Any> {
@@ -117,34 +116,25 @@ class BukkitCommandImpl(baseLabel: String?) : BukkitCommand(baseLabel!!) {
         return map
     }
 
-    private fun paramBuilder(method: Method, paramContainer: HashMap<Class<*>, Any>, player: UUID?): Array<Any?> {
+    private fun paramBuilder(method: Method, paramContainer: HashMap<Class<*>, Any>): Array<Any?> {
         val arr = arrayOfNulls<Any>(method.parameterCount)
-        var pos = 0
-        for (type in method.parameterTypes) {
+        for ((pos, type) in method.parameterTypes.withIndex()) {
             val obj = paramContainer[type]
-            arr[pos++] = obj
+            arr[pos] = obj
         }
         paramContainer.clear()
         return arr
     }
 
     private fun getPrefix(config: CommandConfig): String {
-        return if (baseConfig != null && baseConfig!!.prefix != "") baseConfig!!.prefix else config.prefix
-    }
-
-    private fun opCondition(config: CommandConfig): Boolean {
-        return baseConfig != null && !baseConfig!!.op || config.op
-    }
-
-    private fun consoleCondition(config: CommandConfig): Boolean {
-        return baseConfig != null && !baseConfig!!.console || config.console
+        return if (config.prefix != "") config.prefix else baseConfig?.prefix ?: ""
     }
 
     private fun noPermMessage(config: CommandConfig): String {
-        return if (baseConfig != null && baseConfig!!.noPermMessage != "") baseConfig!!.noPermMessage else config.perm
+        return if (baseConfig != null && baseConfig.noPermMessage != "") baseConfig.noPermMessage else config.perm
     }
 
     private fun noConsoleMessage(config: CommandConfig): String {
-        return if (baseConfig != null && baseConfig!!.noConsoleMessage != "") baseConfig!!.noConsoleMessage else config.noConsoleMessage
+        return if (config.noConsoleMessage != "") config.noConsoleMessage else baseConfig?.noConsoleMessage ?: ""
     }
 }

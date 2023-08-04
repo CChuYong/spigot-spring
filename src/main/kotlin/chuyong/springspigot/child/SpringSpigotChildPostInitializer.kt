@@ -11,60 +11,49 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.SimplePluginManager
 import org.slf4j.Logger
 import org.springframework.context.ApplicationContext
-import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextRefreshedEvent
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 
 @Component
-class SpringSpigotChildConstructionListener(
+class SpringSpigotChildPostInitializer(
     private val springSpigotPluginRegistry: SpringSpigotPluginRegistry,
     private val logger: Logger,
-): ApplicationListener<ContextRefreshedEvent> {
-
-    companion object {
-        private val initializedContext = HashSet<ApplicationContext>();
-    }
-
-    @EventListener
-    override fun onApplicationEvent(event: ContextRefreshedEvent) {
-        if(!initializedContext.add(event.applicationContext)) return
-
+) {
+    fun onPostInitialize(applicationContext: ApplicationContext) {
         val parentContext = SpringSpigotBootstrapper.mainContext
         val commandHandler = parentContext.getBean(BukkitCommandHandler::class.java)
 
 
-        val commandAdvices =  event.applicationContext.getBeansWithAnnotation(
+        val commandAdvices = applicationContext.getBeansWithAnnotation(
             CommandAdvice::class.java
         )
-        commandAdvices.forEach { (t: String?, ob: Any?) ->
+        commandAdvices.forEach { (_, beanObject) ->
             commandHandler.registerAdvices(
-                ob
+                beanObject
             )
         }
-        val commandControllers = event.applicationContext.getBeansWithAnnotation(
+        val commandControllers = applicationContext.getBeansWithAnnotation(
             CommandController::class.java
         )
-        commandControllers.forEach { (t: String?, ob: Any?) ->
+        commandControllers.forEach { (_, beanObject) ->
             commandHandler.registerCommands(
-                ob
+                beanObject
             )
         }
 
-        val beans: Collection<Listener> =  event.applicationContext.getBeansOfType(
+        val beans: Collection<Listener> = applicationContext.getBeansOfType(
             Listener::class.java
         ).values
 
-        val plugin = event.applicationContext.getBean(Plugin::class.java)
+        val plugin = applicationContext.getBean(Plugin::class.java)
 
-        if(event.applicationContext != parentContext) {
+        if (applicationContext != parentContext) {
             logger.info("Registering events for plugin ${plugin.name}...")
             springSpigotPluginRegistry.registerPlugin(plugin as SpringSpigotChildPlugin)
             overwritePlugin(plugin)
         }
 
         val eventService = parentContext.getBean(EventService::class.java)
-        beans.forEach{ listener->
+        beans.forEach { listener ->
             eventService.registerEvents(
                 plugin,
                 listener
@@ -72,11 +61,11 @@ class SpringSpigotChildConstructionListener(
         }
     }
 
-    fun overwritePlugin(plugin: Plugin){
+    fun overwritePlugin(plugin: Plugin) {
         val pluginManager = Bukkit.getPluginManager() as SimplePluginManager
         SimplePluginManager::class.java.getDeclaredField("lookupNames").apply {
             isAccessible = true
-            (get(pluginManager) as HashMap<String, Plugin>).put(plugin.name, plugin)
+            (get(pluginManager) as HashMap<String, Plugin>)[plugin.name] = plugin
         }
         SimplePluginManager::class.java.getDeclaredField("plugins").apply {
             isAccessible = true

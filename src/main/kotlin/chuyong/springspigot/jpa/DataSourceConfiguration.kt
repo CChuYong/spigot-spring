@@ -1,12 +1,5 @@
 package chuyong.springspigot.jpa
 
-import org.slf4j.Logger
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
-
 //@Configuration
 //class DataSourceConfiguration(
 //    private val logger: Logger,

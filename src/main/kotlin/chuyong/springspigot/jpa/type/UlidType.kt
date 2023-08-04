@@ -18,7 +18,7 @@ class UlidType : UserType<Ulid> {
     }
 
     override fun getSqlType(): Int {
-        return java.sql.Types.VARCHAR
+        return Types.VARCHAR
     }
 
     override fun returnedClass(): Class<Ulid> {
@@ -41,7 +41,7 @@ class UlidType : UserType<Ulid> {
     }
 
     override fun disassemble(value: Ulid?): Serializable? {
-        return value as Serializable?
+        return value
     }
 
     override fun deepCopy(value: Ulid?): Ulid? {
@@ -54,9 +54,9 @@ class UlidType : UserType<Ulid> {
         index: Int,
         session: SharedSessionContractImplementor?,
     ) {
-        if(value == null) {
+        if (value == null) {
             st?.setNull(index, Types.CHAR)
-        }else {
+        } else {
             st?.setString(index, value.toString())
         }
     }

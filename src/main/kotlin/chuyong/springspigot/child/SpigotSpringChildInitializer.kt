@@ -6,8 +6,8 @@ import java.util.function.Supplier
 
 class SpigotSpringChildInitializer(
     private val data: SpigotSpringChildPluginData,
-): ApplicationContextInitializer<AnnotationConfigApplicationContext> {
+) : ApplicationContextInitializer<AnnotationConfigApplicationContext> {
     override fun initialize(applicationContext: AnnotationConfigApplicationContext) {
-        applicationContext.registerBean(SpigotSpringChildPluginData::class.java, Supplier{ data })
+        applicationContext.registerBean(SpigotSpringChildPluginData::class.java, Supplier { data })
     }
 }

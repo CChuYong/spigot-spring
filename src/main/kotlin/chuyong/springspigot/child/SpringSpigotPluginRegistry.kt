@@ -9,7 +9,6 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.stereotype.Component
 import java.lang.reflect.Field
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.reflect.KMutableProperty
 
 @Component
 class SpringSpigotPluginRegistry(
@@ -30,17 +29,18 @@ class SpringSpigotPluginRegistry(
                 bean to fields
             }
         }.flatten().forEach { (bean, fields) ->
-            fields.forEach { field->
+            fields.forEach { field ->
                 val inst = AopProxyUtils.getSingletonTarget(bean) ?: bean
                 val annotation = field.getAnnotation(WirePlugin::class.java)
-                val pluginName = if(annotation.pluginName.isNotBlank())
+                val pluginName = if (annotation.pluginName.isNotBlank())
                     annotation.pluginName
                 else if (annotation.value.isNotBlank()) annotation.value
                 else throw NoSuchBeanDefinitionException("Class ${field.declaringClass.simpleName} Field ${field.name} has no plugin name.")
 
-                val targetPlugin = plugins[pluginName] ?: throw NoSuchBeanDefinitionException("Class ${field.declaringClass.simpleName} Field ${field.name} Plugin $pluginName is not registered.")
+                val targetPlugin = plugins[pluginName]
+                    ?: throw NoSuchBeanDefinitionException("Class ${field.declaringClass.simpleName} Field ${field.name} Plugin $pluginName is not registered.")
                 val targetBean = targetPlugin.context.getBean(field.type)
-                if(!field.canAccess(bean)) throw NoSuchBeanDefinitionException("Class ${field.declaringClass.simpleName} Field ${field.name} is not visible.")
+                if (!field.canAccess(bean)) throw NoSuchBeanDefinitionException("Class ${field.declaringClass.simpleName} Field ${field.name} is not visible.")
 
                 field.set(inst, targetBean)
                 count++

@@ -17,11 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import java.io.*
-import java.net.URL
 import java.util.logging.Level
 import java.util.logging.Logger
 
-open class SpringSpigotChildPlugin: Plugin {
+open class SpringSpigotChildPlugin : Plugin {
     @Autowired
     lateinit var data: SpigotSpringChildPluginData
 
@@ -58,23 +57,14 @@ open class SpringSpigotChildPlugin: Plugin {
 
     @Bean
     override fun getConfig(): FileConfiguration {
-        if (data.newConfig == null) {
+        if (data.actualConfig == null) {
             reloadConfig()
         }
-        return data.newConfig!!
+        return data.actualConfig!!
     }
 
     override fun getResource(filename: String): InputStream? {
-        requireNotNull(filename) { "Filename cannot be null" }
-
-        return try {
-            val url: URL = javaClass.classLoader.getResource(filename) ?: return null
-            val connection = url.openConnection()
-            connection.useCaches = false
-            connection.getInputStream()
-        } catch (ex: IOException) {
-            null
-        }
+        return data.getResource(filename)
     }
 
     override fun saveConfig() {
@@ -128,11 +118,18 @@ open class SpringSpigotChildPlugin: Plugin {
     }
 
     override fun reloadConfig() {
-        data.newConfig = YamlConfiguration.loadConfiguration(data.configFile)
+        data.actualConfig = YamlConfiguration.loadConfiguration(data.configFile)
 
         val defConfigStream = getResource("config.yml") ?: return
 
-        data.newConfig!!.setDefaults(YamlConfiguration.loadConfiguration(InputStreamReader(defConfigStream, Charsets.UTF_8)))
+        data.actualConfig!!.setDefaults(
+            YamlConfiguration.loadConfiguration(
+                InputStreamReader(
+                    defConfigStream,
+                    Charsets.UTF_8
+                )
+            )
+        )
     }
 
     override fun getPluginLoader(): PluginLoader {

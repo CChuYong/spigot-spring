@@ -2,7 +2,6 @@ package chuyong.springspigot.scheduler
 
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitScheduler
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
 @Service
@@ -15,11 +14,11 @@ internal class SchedulerServiceDefaultImpl(
     }
 
     override fun scheduleSyncDelayedTask(task: Runnable?): Int {
-        return scheduler.scheduleSyncDelayedTask(plugin!!, task!!)
+        return scheduler.scheduleSyncDelayedTask(plugin, task!!)
     }
 
     override fun scheduleSyncRepeatingTask(task: Runnable?, delay: Long, period: Long): Int {
-        return scheduler.scheduleSyncRepeatingTask(plugin!!, task!!, delay, period)
+        return scheduler.scheduleSyncRepeatingTask(plugin, task!!, delay, period)
     }
 
     override fun cancelTask(taskId: Int) {

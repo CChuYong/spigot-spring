@@ -12,7 +12,7 @@ import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.Types
 
-class ItemStackType: UserType<ItemStack> {
+class ItemStackType : UserType<ItemStack> {
     override fun equals(x: ItemStack?, y: ItemStack?): Boolean {
         return x == y
     }
@@ -60,7 +60,7 @@ class ItemStackType: UserType<ItemStack> {
         index: Int,
         session: SharedSessionContractImplementor?
     ) {
-        if(value != null)
+        if (value != null)
             st?.setBytes(index, convertToDatabaseColumn(value))
         else
             st?.setNull(index, Types.BLOB)

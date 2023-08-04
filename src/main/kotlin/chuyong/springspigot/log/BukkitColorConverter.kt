@@ -11,9 +11,10 @@ import java.lang.reflect.Method
 @ConditionalOnClass(name = ["org.bukkit.craftbukkit.v1_19_R3.command.ColouredConsoleSender"])
 class BukkitColorConverter(
     private val server: Server,
-): ColorConverter {
+) : ColorConverter {
     lateinit var method: Method
     lateinit var replacements: Map<ChatColor, String>
+
     init {
         val clazz = Class.forName("org.bukkit.craftbukkit.v1_19_R3.command.ColouredConsoleSender")
         method = clazz.getDeclaredMethod("convertRGBColors", String::class.java)
@@ -41,10 +42,10 @@ class BukkitColorConverter(
 
 @Component
 @ConditionalOnMissingClass("org.bukkit.craftbukkit.v1_19_R3.command.ColouredConsoleSender")
-class DefaultColorConverter: ColorConverter {
+class DefaultColorConverter : ColorConverter {
     override fun convert(message: String) = message
 }
 
-interface ColorConverter{
+interface ColorConverter {
     fun convert(message: String): String
 }

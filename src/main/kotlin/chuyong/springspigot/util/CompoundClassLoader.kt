@@ -17,7 +17,7 @@ class CompoundClassLoader : ClassLoader {
         classLoaders = ArrayList(loaders)
     }
 
-    fun addLoader(loader: ClassLoader){
+    fun addLoader(loader: ClassLoader) {
         classLoaders.add(loader)
     }
 
@@ -61,11 +61,11 @@ class CompoundClassLoader : ClassLoader {
             return this
         }
         for (loader in classLoaders) {
-            try{
+            try {
                 return loader.loadClass(name).apply {
                     classCache[this.name] = this
                 }
-            }catch(e: ClassNotFoundException){
+            } catch (e: ClassNotFoundException) {
                 //not here
             }
 
