@@ -3,6 +3,7 @@ package chuyong.springspigot
 import chuyong.springspigot.child.*
 import chuyong.springspigot.config.ConfigurationPropertySource
 import chuyong.springspigot.util.CompoundClassLoader
+import chuyong.springspigot.util.CustomURLClassLoader
 import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import net.bytebuddy.ByteBuddy
@@ -25,9 +26,12 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.EnableAspectJAutoProxy
 import org.springframework.context.annotation.Primary
+import org.springframework.core.MethodParameter
 import org.springframework.core.env.PropertiesPropertySource
+import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.support.SpringFactoriesLoader
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.util.StopWatch
 import java.io.File
@@ -57,12 +61,14 @@ class SpringSpigotBootstrapper : JavaPlugin() {
     }
 
     private fun loadSpringSpigot() {
+        val currentContextLoader = Thread.currentThread().contextClassLoader
         val watch = StopWatch()
         watch.start()
         Bukkit.getConsoleSender()
             .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lSpringSpigot Initialization Progress Initiated...")
 
         val globalClassLoader = CompoundClassLoader(masterClassLoader)
+        val spigotSpring = SpigotSpringChildPluginData.copyFromPlugin(this)
 
         val pluginClasses = Arrays.stream(Bukkit.getPluginManager().plugins)
             .filter { plugin: Plugin ->
@@ -94,8 +100,10 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                 throw RuntimeException(e)
             }
         }
+
         val crossPluginLoader = URLClassLoader(pluginUrl.toTypedArray(), masterClassLoader)
         globalClassLoader.addLoader(crossPluginLoader)
+
 
         Bukkit.getConsoleSender()
             .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lBaking Custom ClassLoader Completed...")
@@ -107,10 +115,14 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             Bukkit.getConsoleSender()
                 .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lLoading SpringBoot...")
             Thread.currentThread().contextClassLoader = globalClassLoader
+            val myClazz = SpringSpigotApplication::class.java.name
+
+            unloadPlugin(this)
+            val twoClazz = Class.forName(myClazz, true, globalClassLoader)
 
             val applicationBuilder = SpringApplicationBuilder(
                 globalResourceLoader,
-                SpringSpigotApplication::class.java
+                twoClazz,
             ).apply {
                 bannerMode(Banner.Mode.OFF)
                 initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
