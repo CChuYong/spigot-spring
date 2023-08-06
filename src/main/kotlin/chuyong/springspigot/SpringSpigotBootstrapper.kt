@@ -2,10 +2,8 @@ package chuyong.springspigot
 
 import chuyong.springspigot.child.*
 import chuyong.springspigot.config.ConfigurationPropertySource
-import chuyong.springspigot.util.CompoundClassLoader
+import chuyong.springspigot.util.*
 import chuyong.springspigot.util.MultiClassLoader
-import chuyong.springspigot.util.PluginClassLoader
-import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import net.bytebuddy.ByteBuddy
 import net.bytebuddy.description.annotation.AnnotationDescription
@@ -76,7 +74,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             .filter { plugin: Plugin ->
                 (plugin is JavaPlugin && plugin.javaClass.isAnnotationPresent(
                     EnableSpringSpigotSupport::class.java
-                )) || plugin == this
+                ))
             }
             .toList()
 
@@ -102,16 +100,17 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                 }
                 libraryClasses.addAll(lib)
                 pluginClassNames.add(plugin.javaClass.name)
-                unloadPlugin(plugin)
+              //  unloadPlugin(plugin)
+                PluginUtil().unloadPlugin(plugin)
 
-//                val myLoader = PluginClassLoader(
-//                    parent = null,
-//                    mainContextLoader = currentContextLoader,
-//                    description =data.description,
-//                    file = data.file,
-//                    libraryLoader = null,
-//                )
-//                globalClassLoader.addLoader(myLoader)
+                val myLoader = PluginClassLoader(
+                    parent = masterClassLoader,
+                    mainContextLoader = currentContextLoader,
+                    description =data.description,
+                    file = data.file,
+                    libraryLoader = null,
+                )
+                globalClassLoader.addLoader(myLoader)
                 data.file.toURI().toURL()
             } catch (e: Exception) {
                 throw RuntimeException(e)
@@ -134,15 +133,15 @@ class SpringSpigotBootstrapper : JavaPlugin() {
 
         val executor =
             Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("SpringSpigot Bootstrap").build())
-        val globalResourceLoader = DefaultResourceLoader(multiClassLoader)
+        val globalResourceLoader = DefaultResourceLoader(globalClassLoader)
         CompletableFuture.runAsync({
             Bukkit.getConsoleSender()
                 .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lLoading SpringBoot...")
-            Thread.currentThread().contextClassLoader = multiClassLoader
+            Thread.currentThread().contextClassLoader = globalClassLoader
             val myClazz = SpringSpigotApplication::class.java.name
 
             unloadPlugin(this)
-            val twoClazz = Class.forName(myClazz, true, multiClassLoader)
+            val twoClazz = Class.forName(myClazz, true, globalClassLoader)
 
             val applicationBuilder = SpringApplicationBuilder(
                 globalResourceLoader,

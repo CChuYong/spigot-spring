@@ -52,7 +52,7 @@ internal class PluginClassLoader(
 
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        println("LOAD ${name}")
+       // println("LOAD ${name}")
         return loadClass0(name, resolve, true, true)
     }
 
@@ -91,7 +91,7 @@ internal class PluginClassLoader(
 
     @Throws(ClassNotFoundException::class)
     override fun findClass(name: String): Class<*>? {
-        println("FIND ${name}")
+        //println("FIND ${name}")
         if (name.startsWith("org.bukkit.") || name.startsWith("net.minecraft.")) {
             throw ClassNotFoundException(name)
         }
