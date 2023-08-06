@@ -3,6 +3,7 @@ package chuyong.springspigot
 import chuyong.springspigot.child.*
 import chuyong.springspigot.config.ConfigurationPropertySource
 import chuyong.springspigot.util.CompoundClassLoader
+import chuyong.springspigot.util.MultiClassLoader
 import chuyong.springspigot.util.PluginClassLoader
 import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.util.concurrent.ThreadFactoryBuilder
@@ -35,6 +36,7 @@ import org.springframework.core.io.support.SpringFactoriesLoader
 import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.util.StopWatch
 import java.io.File
+import java.net.URL
 import java.net.URLClassLoader
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -72,9 +74,9 @@ class SpringSpigotBootstrapper : JavaPlugin() {
 
         val pluginClasses = Arrays.stream(Bukkit.getPluginManager().plugins)
             .filter { plugin: Plugin ->
-                plugin is JavaPlugin && plugin.javaClass.isAnnotationPresent(
+                (plugin is JavaPlugin && plugin.javaClass.isAnnotationPresent(
                     EnableSpringSpigotSupport::class.java
-                )
+                )) || plugin == this
             }
             .toList()
 
@@ -85,6 +87,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             isAccessible = true
         }
 
+        val libraryClasses = mutableSetOf<URL>()
         val pluginClassNames = mutableListOf<String>()
         val pluginUrl = pluginClasses.map { plugin ->
             try {
@@ -93,22 +96,34 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                 setEnabledMethod.set(plugin, true)
                 Bukkit.getConsoleSender()
                     .sendMessage("§f§l[§6SpringSpigot§f§l] Disabling plugin " + plugin.name + " To load from SpringSpigot..")
+                val lib = plugin::class.java.classLoader::class.java.getDeclaredField("libraryLoader").let {
+                    it.isAccessible = true
+                    (it.get(plugin::class.java.classLoader) as? URLClassLoader)?.urLs ?: emptyArray()
+                }
+                libraryClasses.addAll(lib)
                 pluginClassNames.add(plugin.javaClass.name)
                 unloadPlugin(plugin)
 
-                val myLoader = PluginClassLoader(
-                    parent = null,
-                    mainContextLoader = currentContextLoader,
-                    description =data.description,
-                    file = data.file,
-                    libraryLoader = null,
-                )
-                globalClassLoader.addLoader(myLoader)
+//                val myLoader = PluginClassLoader(
+//                    parent = null,
+//                    mainContextLoader = currentContextLoader,
+//                    description =data.description,
+//                    file = data.file,
+//                    libraryLoader = null,
+//                )
+//                globalClassLoader.addLoader(myLoader)
                 data.file.toURI().toURL()
             } catch (e: Exception) {
                 throw RuntimeException(e)
             }
         }
+
+        val multiClassLoader = MultiClassLoader(
+            parent = masterClassLoader,
+            mainContextLoader = currentContextLoader,
+            urls = pluginUrl.toTypedArray(),
+            libraryLoader = URLClassLoader(libraryClasses.toTypedArray()),
+        )
 
     //   val crossPluginLoader = URLClassLoader(pluginUrl.toTypedArray(), masterClassLoader)
       //  globalClassLoader.addLoader(crossPluginLoader)
@@ -119,15 +134,15 @@ class SpringSpigotBootstrapper : JavaPlugin() {
 
         val executor =
             Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("SpringSpigot Bootstrap").build())
-        val globalResourceLoader = DefaultResourceLoader(globalClassLoader)
+        val globalResourceLoader = DefaultResourceLoader(multiClassLoader)
         CompletableFuture.runAsync({
             Bukkit.getConsoleSender()
                 .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lLoading SpringBoot...")
-            Thread.currentThread().contextClassLoader = globalClassLoader
+            Thread.currentThread().contextClassLoader = multiClassLoader
             val myClazz = SpringSpigotApplication::class.java.name
 
             unloadPlugin(this)
-            val twoClazz = Class.forName(myClazz, true, globalClassLoader)
+            val twoClazz = Class.forName(myClazz, true, multiClassLoader)
 
             val applicationBuilder = SpringApplicationBuilder(
                 globalResourceLoader,
@@ -153,18 +168,19 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             logger.info("Main context initialize completed! Starting to load plugins...")
 
             val plugins = pluginClassNames.mapNotNull { pluginClazzName ->
+                if(pluginClazzName == SpringSpigotBootstrapper::class.java.name) return@mapNotNull null
                 val data = pluginDataMap[pluginClazzName]!!
                 try {
-                    val pluginClazz = Class.forName(pluginClazzName, true, globalClassLoader)
+                    val pluginClazz = Class.forName(pluginClazzName, true, multiClassLoader)
                     logger.info("Loading Plugin ${data.description.name}")
                     val newClazz = createMockClazz(
                         pluginClazz = pluginClazz,
-                        classLoader = globalClassLoader,
+                        classLoader = multiClassLoader,
                     )
                     val context = applicationBuilder.child(newClazz)
                         .bannerMode(Banner.Mode.OFF)
                         .initializers(SpigotSpringChildInitializer(data))
-                        .resourceLoader(globalResourceLoader)
+                        .resourceLoader(DefaultResourceLoader(multiClassLoader))
                         .initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
                             data.getContextApplicationProperties()?.apply {
                                 logger.info("Found application.yml for plugin ${data.description.name}. Overriding default properties...")
