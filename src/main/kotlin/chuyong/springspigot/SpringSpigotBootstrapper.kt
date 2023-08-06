@@ -162,7 +162,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                                 propertySources.addLast(
                                     PropertiesPropertySource(
                                         "plugin-yaml",
-                                        getPrimaryApplicationProperties()
+                                        this,
                                     )
                                 )
                             }
