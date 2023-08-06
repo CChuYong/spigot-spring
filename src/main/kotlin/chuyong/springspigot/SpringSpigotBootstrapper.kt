@@ -3,6 +3,7 @@ package chuyong.springspigot
 import chuyong.springspigot.child.*
 import chuyong.springspigot.config.ConfigurationPropertySource
 import chuyong.springspigot.util.CompoundClassLoader
+import chuyong.springspigot.util.PluginClassLoader
 import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import net.bytebuddy.ByteBuddy
@@ -94,14 +95,23 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                     .sendMessage("§f§l[§6SpringSpigot§f§l] Disabling plugin " + plugin.name + " To load from SpringSpigot..")
                 pluginClassNames.add(plugin.javaClass.name)
                 unloadPlugin(plugin)
+
+                val myLoader = PluginClassLoader(
+                    parent = null,
+                    mainContextLoader = currentContextLoader,
+                    description =data.description,
+                    file = data.file,
+                    libraryLoader = null,
+                )
+                globalClassLoader.addLoader(myLoader)
                 data.file.toURI().toURL()
             } catch (e: Exception) {
                 throw RuntimeException(e)
             }
         }
 
-        val crossPluginLoader = URLClassLoader(pluginUrl.toTypedArray(), masterClassLoader)
-        globalClassLoader.addLoader(crossPluginLoader)
+    //   val crossPluginLoader = URLClassLoader(pluginUrl.toTypedArray(), masterClassLoader)
+      //  globalClassLoader.addLoader(crossPluginLoader)
 
 
         Bukkit.getConsoleSender()
@@ -145,7 +155,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             val plugins = pluginClassNames.mapNotNull { pluginClazzName ->
                 val data = pluginDataMap[pluginClazzName]!!
                 try {
-                    val pluginClazz = Class.forName(pluginClazzName, true, crossPluginLoader)
+                    val pluginClazz = Class.forName(pluginClazzName, true, globalClassLoader)
                     logger.info("Loading Plugin ${data.description.name}")
                     val newClazz = createMockClazz(
                         pluginClazz = pluginClazz,
