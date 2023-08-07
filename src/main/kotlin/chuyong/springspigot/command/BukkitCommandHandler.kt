@@ -5,8 +5,10 @@ import chuyong.springspigot.command.annotation.CommandMapping
 import chuyong.springspigot.command.data.CommandConfig
 import chuyong.springspigot.command.data.ExceptionHandlerWrapper
 import chuyong.springspigot.command.data.SuperCommandConfig
+import chuyong.springspigot.scheduler.SchedulerService
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandMap
+import org.bukkit.command.SimpleCommandMap
 import org.slf4j.Logger
 import org.springframework.aop.support.AopUtils
 import org.springframework.stereotype.Component
@@ -17,6 +19,7 @@ import java.lang.reflect.Method
 class BukkitCommandHandler(
     private val exceptionHandler: BaseCommandExceptionHandler,
     private val logger: Logger,
+    private val schedulerService: SchedulerService,
 ) {
     private val mainCMD = HashMap<String, BukkitCommandImpl>()
 
@@ -80,12 +83,23 @@ class BukkitCommandHandler(
             bukkitCommandMap.isAccessible = true
             val commandMap = bukkitCommandMap[Bukkit.getServer()] as CommandMap
             val command = BukkitCommandImpl(ano.value, SuperCommandConfig.fromAnnotation(ano))
-            commandMap.register(ano.value, command)
+            val result = commandMap.register(ano.value, command)
             mainCMD[ano.value] = command
             if (command.aliases.size < ano.aliases.size) {
                 command.aliases = listOf(*ano.aliases)
             }
             command
+        }
+    }
+
+    fun finalizeCommandMap() {
+        val bukkitCommandMap = Bukkit.getServer().javaClass.getDeclaredField("commandMap")
+        bukkitCommandMap.isAccessible = true
+        val commandMap = bukkitCommandMap[Bukkit.getServer()] as CommandMap
+        (commandMap as SimpleCommandMap).registerServerAliases()
+
+        schedulerService.scheduleSyncDelayedTask {
+            Bukkit.getServer()::class.java.getMethod("syncCommands").invoke(Bukkit.getServer())
         }
     }
 

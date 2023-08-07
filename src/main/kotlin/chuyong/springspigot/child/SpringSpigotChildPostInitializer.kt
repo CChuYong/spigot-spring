@@ -39,6 +39,7 @@ class SpringSpigotChildPostInitializer(
                 beanObject
             )
         }
+        commandHandler.finalizeCommandMap()
 
         val beans: Collection<Listener> = applicationContext.getBeansOfType(
             Listener::class.java
