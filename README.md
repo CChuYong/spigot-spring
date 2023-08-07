@@ -32,3 +32,8 @@ class MySpecialPlugin : JavaPlugin() {
 - [x] Supports `Annotated Command Controller` just like Spring's RestController
 - [x] Includes default JPA ItemStack Types (Storing ItemStack to DataBase)
 
+## Known issues
+### My plugin's external library dependency collision with SpringSpigot!
+SpigotSpring Plugin uses Bukkit's PluginClassLoader while bootstrapping, so cannot override bukkit's default dependencies (ex: latest netty, guava.. etc)
+### Cannot use external SpringBoot starter libraries!
+All Bukkit's plugin has unique `PluginClassLoader`, So if individual plugin loads springboot related classes, it will cause classloader exception. (SpringBoot's A class can loaded both SpigotSpring and your plugin, but it treated as different class)
