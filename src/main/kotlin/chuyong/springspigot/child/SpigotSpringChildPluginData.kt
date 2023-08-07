@@ -30,9 +30,14 @@ data class SpigotSpringChildPluginData(
     }
 
     fun getContextApplicationProperties(): Properties? {
-        if (!dataFolder.exists()) return null
+        if (!dataFolder.exists()) {
+            dataFolder.mkdirs()
+        }
         val configurationFile = FileSystemResource(File(dataFolder, "application.yml"))
-        if (!configurationFile.exists()) return null
+        if (!configurationFile.exists()) {
+            configurationFile.file.createNewFile()
+            return null
+        }
         return YamlPropertiesFactory.loadYamlIntoProperties(configurationFile)!!
     }
 

@@ -61,6 +61,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter:3.1.1")
     implementation("org.springframework.boot:spring-boot-starter-aop:3.1.1")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1")
+    implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.1")
 
     compileOnly("org.apache.commons:commons-lang3:3.12.0")
     compileOnly("com.github.f4b6a3:ulid-creator:5.2.0")
@@ -69,6 +70,7 @@ dependencies {
     compileOnly("com.h2database:h2:1.4.200")
     compileOnly("net.bytebuddy:byte-buddy:1.14.5")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    compileOnly("org.jetbrains.kotlin:kotlin-reflect")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
 

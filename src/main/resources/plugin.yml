@@ -11,3 +11,5 @@ libraries:
   - mysql:mysql-connector-java:8.0.28
   - com.h2database:h2:1.4.200
   - net.bytebuddy:byte-buddy:1.14.5
+  - org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0
+  - org.jetbrains.kotlin:kotlin-reflect:1.8.0

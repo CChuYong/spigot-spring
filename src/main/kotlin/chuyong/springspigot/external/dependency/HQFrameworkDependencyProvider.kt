@@ -10,11 +10,10 @@ import org.springframework.stereotype.Component
 import kotlin.reflect.KClass
 
 @Component("hq-provider")
-@ConditionalOnBean(KoinDependencyProvider::class)
 @ConditionalOnClass(
     ComponentRegistry::class
 )
-class HQFrameworkDependencyProvider(private val koinProvider: KoinDependencyProvider) : ExternalDependencyProvider {
+class HQFrameworkDependencyProvider : ExternalDependencyProvider {
     override fun <T : Any> get(clazz: Class<T>): T {
         return getNamed(clazz, "HQFramework")
     }
