@@ -106,10 +106,14 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             }
         }
 
+        val list = mutableListOf<URL>()
+        list.addAll(pluginUrl)
+        list.addAll(libraryClasses)
+
         val customLoader = MultiClassLoader(
             parent = masterClassLoader,
             mainContextLoader = currentContextLoader,
-            urls = pluginUrl.toTypedArray(),
+            urls = list.toTypedArray(),
             libraryUrls = libraryClasses.toTypedArray(),
         )
 
