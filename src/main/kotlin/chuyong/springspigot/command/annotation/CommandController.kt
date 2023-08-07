@@ -9,5 +9,5 @@ import org.springframework.stereotype.Component
 @Component
 annotation class CommandController(
     @get:AliasFor(annotation = Component::class)
-    val value: String = ""
+    val value: String = "",
 )

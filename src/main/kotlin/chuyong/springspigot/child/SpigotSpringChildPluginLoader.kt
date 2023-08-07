@@ -27,7 +27,7 @@ class SpigotSpringChildPluginLoader(
 
     override fun createRegisteredListeners(
         listener: Listener,
-        plugin: Plugin
+        plugin: Plugin,
     ): MutableMap<Class<out Event>, MutableSet<RegisteredListener>> {
         return mutableMapOf()
     }

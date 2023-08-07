@@ -35,7 +35,7 @@ class BukkitCommandImpl(
         subcommand: Array<String>,
         ano: CommandConfig,
         method: Method,
-        beanObject: Any
+        beanObject: Any,
     ): SubCommandContainer {
         val commandList = LinkedList(listOf(*subcommand))
         commandList.removeIf { element: String -> element == "" }

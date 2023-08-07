@@ -58,6 +58,9 @@ kotlin {
 }
 
 dependencies {
+    // https://mvnrepository.com/artifact/org.ow2.asm/asm
+    implementation("org.ow2.asm:asm:9.5")
+    implementation("org.ow2.asm:asm-commons:9.5")
     implementation("org.springframework.boot:spring-boot-starter:3.1.1")
     implementation("org.springframework.boot:spring-boot-starter-aop:3.1.1")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1")
@@ -78,7 +81,8 @@ dependencies {
     compileOnly("io.insert-koin:koin-core:3.4.2")
     compileOnly("kr.hqservice:hqframework-global-core:1.0.0-SNAPSHOT")
     compileOnly("kr.hqservice:hqframework-bukkit-core:1.0.0-SNAPSHOT")
-    compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
+    //compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
+    compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 }
 

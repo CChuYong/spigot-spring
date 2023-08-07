@@ -25,23 +25,23 @@ class PluginUtil {
         pluginManager.disablePlugin(plugin)
         try {
             val pluginsField = pluginManager::class.java.getDeclaredField("plugins")
-            pluginsField.setAccessible(true)
+            pluginsField.isAccessible = true
             plugins = pluginsField.get(pluginManager) as MutableList<Plugin?>?
             val lookupNamesField = pluginManager::class.java.getDeclaredField("lookupNames")
-            lookupNamesField.setAccessible(true)
+            lookupNamesField.isAccessible = true
             names = lookupNamesField.get(pluginManager) as MutableMap<String?, Plugin?>?
             try {
                 val listenersField = pluginManager::class.java.getDeclaredField("listeners")
-                listenersField.setAccessible(true)
+                listenersField.isAccessible = true
                 listeners = listenersField.get(pluginManager) as Map<Event?, SortedSet<RegisteredListener?>?>?
             } catch (e: Exception) {
                 reloadlisteners = false
             }
             val commandMapField = pluginManager::class.java.getDeclaredField("commandMap")
-            commandMapField.setAccessible(true)
+            commandMapField.isAccessible = true
             commandMap = commandMapField.get(pluginManager) as SimpleCommandMap
             val knownCommandsField = SimpleCommandMap::class.java.getDeclaredField("knownCommands")
-            knownCommandsField.setAccessible(true)
+            knownCommandsField.isAccessible = true
             commands = knownCommandsField.get(commandMap) as Map<String?, Command?>?
         } catch (e: Exception) {
             e.printStackTrace()
@@ -52,14 +52,14 @@ class PluginUtil {
         if (names != null && names.containsKey(name)) names.remove(name)
 
 
-        val cl: ClassLoader = plugin::class.java.getClassLoader()
+        val cl: ClassLoader = plugin::class.java.classLoader
         if (cl is URLClassLoader) {
             try {
                 val pluginField = cl.javaClass.getDeclaredField("plugin")
-                pluginField.setAccessible(true)
+                pluginField.isAccessible = true
                 pluginField.set(cl, null)
                 val pluginInitField = cl.javaClass.getDeclaredField("pluginInit")
-                pluginInitField.setAccessible(true)
+                pluginInitField.isAccessible = true
                 pluginInitField.set(cl, null)
             } catch (ex: java.lang.Exception) {
                 ex.printStackTrace()

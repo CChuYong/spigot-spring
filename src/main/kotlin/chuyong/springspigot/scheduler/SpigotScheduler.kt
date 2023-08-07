@@ -8,7 +8,7 @@ import java.time.Instant
 import java.util.concurrent.ScheduledFuture
 
 class SpigotScheduler(
-    private val scheduler: SchedulerService
+    private val scheduler: SchedulerService,
 ) : TaskScheduler {
     private val taskScheduler = ThreadPoolTaskScheduler()
 

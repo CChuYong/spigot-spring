@@ -4,7 +4,6 @@ import kr.hqservice.framework.bukkit.core.HQBukkitPlugin
 import kr.hqservice.framework.global.core.component.HQComponent
 import kr.hqservice.framework.global.core.component.registry.ComponentRegistry
 import org.bukkit.Bukkit
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.stereotype.Component
 import kotlin.reflect.KClass

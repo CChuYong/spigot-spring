@@ -15,6 +15,7 @@ import org.bukkit.Bukkit
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.plugin.java.JavaPluginLoader
+import org.bukkit.plugin.java.PluginClassLoader
 import org.slf4j.Logger
 import org.springframework.boot.Banner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -96,26 +97,50 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                 }
                 libraryClasses.addAll(lib)
                 pluginClassNames.add(plugin.javaClass.name)
-              //  unloadPlugin(plugin)
-               // if(plugin != this)
-                    PluginUtil().unloadPlugin(plugin)
+                //  unloadPlugin(plugin)
+                // if(plugin != this)
+                PluginUtil().unloadPlugin(plugin)
                 data.file.toURI().toURL()
             } catch (e: Exception) {
                 throw RuntimeException(e)
             }
         }
 
-
-        val multiClassLoader = CompoundClassLoader(currentContextLoader, classLoader, MultiClassLoader(
+        val customLoader = MultiClassLoader(
             parent = masterClassLoader,
             mainContextLoader = currentContextLoader,
             urls = pluginUrl.toTypedArray(),
             libraryUrls = libraryClasses.toTypedArray(),
-        ))
+        )
 
-    //   val crossPluginLoader = URLClassLoader(pluginUrl.toTypedArray(), masterClassLoader)
-      //  globalClassLoader.addLoader(crossPluginLoader)
 
+        val multiClassLoader = CompoundClassLoader(currentContextLoader, classLoader, customLoader)
+
+        //   val crossPluginLoader = URLClassLoader(pluginUrl.toTypedArray(), masterClassLoader)
+        //  globalClassLoader.addLoader(crossPluginLoader)
+
+        (classLoader as PluginClassLoader).plugin = null
+
+        val f = PluginClassLoader::class.java.getDeclaredField("pluginInit")
+        f.isAccessible = true
+        f.set(classLoader, null)
+
+
+        val pluginLoaderzz = CustomPluginClassLoader(
+            parented = classLoader.parent,
+            loader = pluginLoader as JavaPluginLoader,
+            data = spigotSpring,
+            customClassLoader = customLoader
+        )
+
+        (classLoader as PluginClassLoader).plugin = this
+        (pluginLoader as JavaPluginLoader).apply {
+            (JavaPluginLoader::class.java).getDeclaredField("loaders").let {
+                it.isAccessible = true
+                (it.get(pluginLoader) as MutableList<Any>).add(pluginLoaderzz)
+                println("LOADED LOADER")
+            }
+        }
 
         Bukkit.getConsoleSender()
             .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lBaking Custom ClassLoader Completed...")
@@ -124,17 +149,15 @@ class SpringSpigotBootstrapper : JavaPlugin() {
         val executor =
             Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("SpringSpigot Bootstrap").build())
         //val globalResourceLoader = DefaultResourceLoader(globalClassLoader)
-      //  val bootstrapPlugin = this
+        //  val bootstrapPlugin = this
         CompletableFuture.runAsync({
             Bukkit.getConsoleSender()
                 .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lLoading SpringBoot...")
+            unloadPlugin(this)
+
             Thread.currentThread().contextClassLoader = multiClassLoader
             val myClazz = SpringSpigotApplication::class.java.name
-
-            unloadPlugin(this)
             val twoClazz = Class.forName(myClazz, true, multiClassLoader)
-
-          //  PluginUtil().unloadPlugin(bootstrapPlugin)
 
             val applicationBuilder = SpringApplicationBuilder(
                 DefaultResourceLoader(multiClassLoader),
@@ -162,7 +185,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             Thread.currentThread().contextClassLoader = multiClassLoader
 
             val plugins = pluginClassNames.mapNotNull { pluginClazzName ->
-                if(pluginClazzName == SpringSpigotBootstrapper::class.java.name) return@mapNotNull null
+                if (pluginClazzName == SpringSpigotBootstrapper::class.java.name) return@mapNotNull null
                 val data = pluginDataMap[pluginClazzName]!!
                 try {
                     val pluginClazz = Class.forName(pluginClazzName, true, multiClassLoader)

@@ -1,7 +1,6 @@
 package chuyong.springspigot.util
 
 import java.io.InputStream
-import java.lang.Exception
 import java.net.URL
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -24,12 +23,13 @@ class CompoundClassLoader : ClassLoader {
 
     override fun getResource(name: String): URL? {
         for (loader in classLoaders) {
-            try{
+            try {
                 val resource = loader.getResource(name)
                 if (resource != null) {
                     return resource
                 }
-            }catch(e: Exception){}
+            } catch (e: Exception) {
+            }
         }
         return null
     }

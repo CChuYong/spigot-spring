@@ -18,7 +18,7 @@ internal class PluginClassLoader(
     private val mainContextLoader: ClassLoader,
     private val description: PluginDescriptionFile,
     private val file: File,
-    private val libraryLoader: ClassLoader?
+    private val libraryLoader: ClassLoader?,
 ) :
     URLClassLoader(arrayOf(file.toURI().toURL()), parent) {
     private val classes: MutableMap<String, Class<*>?> = ConcurrentHashMap()
@@ -52,7 +52,7 @@ internal class PluginClassLoader(
 
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
-       // println("LOAD ${name}")
+        // println("LOAD ${name}")
         return loadClass0(name, resolve, true, true)
     }
 
@@ -73,9 +73,9 @@ internal class PluginClassLoader(
             } catch (ex: ClassNotFoundException) {
             }
         }
-        try{
+        try {
             return mainContextLoader.loadClass(name)
-        }catch (ex: ClassNotFoundException) {
+        } catch (ex: ClassNotFoundException) {
         }
 
 
@@ -108,7 +108,7 @@ internal class PluginClassLoader(
                 } catch (ex: IOException) {
                     throw ClassNotFoundException(name, ex)
                 }
-                classBytes = Bukkit.getServer().unsafe.processClass(description, path, classBytes);
+                classBytes = Bukkit.getServer().unsafe.processClass(description, path, classBytes)
                 val dot = name.lastIndexOf('.')
                 if (dot != -1) {
                     val pkgName = name.substring(0, dot)
@@ -132,16 +132,16 @@ internal class PluginClassLoader(
                 }
                 val signers = entry.codeSigners
                 val source = CodeSource(url, signers)
-                try{
+                try {
                     result = defineClass(name, classBytes, 0, classBytes.size, source)
-                }catch(e: NoClassDefFoundError){
+                } catch (e: NoClassDefFoundError) {
 
                 }
             }
             if (result == null) {
                 result = super.findClass(name)
             }
-          //  loader.setClass(name, result!!)
+            //  loader.setClass(name, result!!)
             classes[name] = result
         }
         return result

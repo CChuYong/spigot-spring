@@ -33,7 +33,7 @@ class ItemStackType : UserType<ItemStack> {
         rs: ResultSet?,
         position: Int,
         session: SharedSessionContractImplementor?,
-        owner: Any?
+        owner: Any?,
     ): ItemStack? {
         return rs?.getBytes(position)?.let { convertToEntityAttribute(it) }
     }
@@ -58,7 +58,7 @@ class ItemStackType : UserType<ItemStack> {
         st: PreparedStatement?,
         value: ItemStack?,
         index: Int,
-        session: SharedSessionContractImplementor?
+        session: SharedSessionContractImplementor?,
     ) {
         if (value != null)
             st?.setBytes(index, convertToDatabaseColumn(value))
