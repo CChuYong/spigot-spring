@@ -5,6 +5,7 @@ import org.bukkit.Bukkit
 import org.bukkit.plugin.PluginDescriptionFile
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.net.URL
 import java.net.URLClassLoader
 import java.security.CodeSource
@@ -17,9 +18,11 @@ internal class MultiClassLoader(
     parent: ClassLoader?,
     private val mainContextLoader: ClassLoader,
     private val urls: Array<URL>,
-    private val libraryLoader: ClassLoader?
+    private val libraryUrls: Array<URL>,
+
 ) :
     URLClassLoader(urls, parent) {
+    private val libraryLoader: ClassLoader = URLClassLoader(libraryUrls, parent)
     private val classes: MutableMap<String, Class<*>?> = ConcurrentHashMap()
    // private val jar: JarFile = JarFile(file)
   //  private val manifest: Manifest = jar.manifest
@@ -36,6 +39,12 @@ internal class MultiClassLoader(
 //        return findResources(name)
 //    }
 
+    override fun getResourceAsStream(name: String?): InputStream? {
+       // println(name)
+        val currentLoaderBias = super.getResourceAsStream(name)
+        return currentLoaderBias ?: libraryLoader.getResourceAsStream(name)
+    }
+
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
        // println("LOAD ${name}")
@@ -45,21 +54,24 @@ internal class MultiClassLoader(
     @Throws(ClassNotFoundException::class)
     fun loadClass0(name: String, resolve: Boolean, checkGlobal: Boolean, checkLibraries: Boolean): Class<*> {
         try {
-            val result = super.loadClass(name, resolve)
+       //     println("LOADCLASS ${name}")
+            return super.loadClass(name, resolve)
 
-            // SPIGOT-6749: Library classes will appear in the above, but we don't want to return them to other plugins
-            if (checkGlobal || result.classLoader === this) {
-                return result
-            }
+//            // SPIGOT-6749: Library classes will appear in the above, but we don't want to return them to other plugins
+//            if (checkGlobal || result.classLoader === this) {
+//                return result
+//            }
         } catch (ex: ClassNotFoundException) {
         }
         if (checkLibraries && libraryLoader != null) {
+         //   println("LOADCLASS-LIB ${name}")
             try {
                 return libraryLoader.loadClass(name)
             } catch (ex: ClassNotFoundException) {
             }
         }
         try{
+           // println("CTX-LIB ${name}")
             return mainContextLoader.loadClass(name)
         }catch (ex: ClassNotFoundException) {
         }

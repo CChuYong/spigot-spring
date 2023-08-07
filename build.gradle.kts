@@ -70,6 +70,7 @@ dependencies {
     compileOnly("com.h2database:h2:1.4.200")
     compileOnly("net.bytebuddy:byte-buddy:1.14.5")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    compileOnly("org.jetbrains.kotlin:kotlin-reflect")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
 
