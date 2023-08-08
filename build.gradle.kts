@@ -8,7 +8,7 @@ plugins {
 val isRelease = System.getProperty("release") != null
 val baseVersion = "0.0.1"
 group = "kr.chuyong"
-version = "${baseVersion}${if (isRelease) "" else "-SNAPSHOT"}"
+version = "${baseVersion}${if (isRelease) "-RELEASE" else "-SNAPSHOT"}"
 description = "Spring Boot Spigot Starter"
 
 val parentVersion = version
@@ -83,7 +83,7 @@ task("publishAll") {
 
 tasks.register("printVersion") {
     doLast {
-        val version = project.version
+        val version = if(isRelease) baseVersion else version
         println("$version")
     }
 }
