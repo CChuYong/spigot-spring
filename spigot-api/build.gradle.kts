@@ -66,7 +66,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":core-api"))
+    api(project(":core-api"))
     // https://mvnrepository.com/artifact/org.ow2.asm/asm
     compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
     implementation("org.springframework.boot:spring-boot-starter:3.1.1")
