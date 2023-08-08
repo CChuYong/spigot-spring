@@ -15,6 +15,7 @@ import org.bukkit.event.Event
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.RegisteredListener
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.EnableAspectJAutoProxy
 import org.springframework.context.annotation.Primary
 import org.springframework.scheduling.annotation.EnableAsync
@@ -115,6 +116,26 @@ class PluginUtil {
                     AnnotationDescription
                         .Builder
                         .ofType(EnableAspectJAutoProxy::class.java)
+                        .build()
+                )
+                .defineConstructor(Visibility.PUBLIC).intercept(MethodCall.invoke(pluginConstructor))
+                .method(ElementMatchers.isDeclaredBy(pluginClazz))
+                .intercept(MethodDelegation.to(pluginClazz))
+                .make()
+
+            return newPluginClazz.load(classLoader).loaded
+        }
+
+        fun createEscaltedMockCLazz(pluginClazz: Class<*>, classLoader: ClassLoader): Class<*> {
+            val pluginConstructor = SpringSpigotChildPlugin::class.java.getConstructor()
+            val newPluginClazz = ByteBuddy()
+                .subclass(SpringSpigotChildPlugin::class.java, ConstructorStrategy.Default.NO_CONSTRUCTORS)
+                .name(pluginClazz.name + "\$ByteBuddy")
+                .annotateType(
+                    AnnotationDescription
+                        .Builder
+                        .ofType(ComponentScan::class.java)
+                        .defineArray("basePackages", *arrayOf(pluginClazz.`package`.name))
                         .build()
                 )
                 .defineConstructor(Visibility.PUBLIC).intercept(MethodCall.invoke(pluginConstructor))

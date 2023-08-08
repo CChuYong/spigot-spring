@@ -75,7 +75,7 @@ class CompoundClassLoader : ClassLoader {
             }
 
         }
-        throw ClassNotFoundException()
+        throw ClassNotFoundException("Not found clazz $name")
     }
 
     @Throws(ClassNotFoundException::class)

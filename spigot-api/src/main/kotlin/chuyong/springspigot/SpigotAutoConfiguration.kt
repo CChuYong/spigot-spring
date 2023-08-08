@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import org.springframework.scheduling.TaskScheduler
 
 @Configuration
@@ -28,6 +29,7 @@ class SpigotAutoConfiguration {
         return plugin.server
     }
 
+    @Primary
     @Bean(destroyMethod = "")
     fun pluginBean(@Value("\${spigot.plugin}") pluginName: String): Plugin? {
         return Bukkit.getPluginManager().getPlugin(pluginName)

@@ -28,6 +28,7 @@ import java.net.URLClassLoader
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
+import java.util.function.Supplier
 
 class SpringSpigotBootstrapper : JavaPlugin() {
     private val masterClassLoader = CompoundClassLoader(Thread.currentThread().contextClassLoader, classLoader)
@@ -72,26 +73,35 @@ class SpringSpigotBootstrapper : JavaPlugin() {
         val setEnabledMethod = JavaPlugin::class.java.getDeclaredField("isEnabled").apply {
             isAccessible = true
         }
+        val escalatedClassNames = mutableSetOf<String>()
 
         val libraryClasses = mutableSetOf<URL>()
         val pluginClassNames = mutableListOf<String>()
-        val pluginUrl = pluginClasses.map { plugin ->
+        val pluginUrl = pluginClasses.mapNotNull { plugin ->
             try {
+                val cfg = plugin.javaClass.getAnnotation(EnableSpringSpigotSupport::class.java)!!
+
                 val data = SpigotSpringChildPluginData.copyFromPlugin(plugin as JavaPlugin)
                 pluginDataMap[plugin.javaClass.name] = data
                 setEnabledMethod.set(plugin, true)
                 Bukkit.getConsoleSender()
                     .sendMessage("§f§l[§6SpringSpigot§f§l] Disabling plugin " + plugin.name + " To load from SpringSpigot..")
+
+
                 val lib = plugin::class.java.classLoader::class.java.getDeclaredField("libraryLoader").let {
                     it.isAccessible = true
                     (it.get(plugin::class.java.classLoader) as? URLClassLoader)?.urLs ?: emptyArray()
                 }
                 libraryClasses.addAll(lib)
-                pluginClassNames.add(plugin.javaClass.name)
-                //  unloadPlugin(plugin)
-                // if(plugin != this)
                 PluginUtil.unloadPlugin(plugin)
-                data.file.toURI().toURL()
+                if(!cfg.contextEscalation){
+                    pluginClassNames.add(plugin.javaClass.name)
+                } else {
+                    Bukkit.getConsoleSender()
+                        .sendMessage("§f§l[§6SpringSpigot§f§l] Experimental Context Escalation on plugin " + plugin.name + "")
+                    escalatedClassNames.add(plugin.javaClass.name)
+                }
+                return@mapNotNull data.file.toURI().toURL()
             } catch (e: Exception) {
                 throw RuntimeException(e)
             }
@@ -148,9 +158,14 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             val myClazz = SpringSpigotApplication::class.java.name
             val twoClazz = Class.forName(myClazz, true, multiClassLoader)
 
+            val escalatedClazzes = escalatedClassNames.map {
+                val defClazz = Class.forName(it, true, multiClassLoader)
+                PluginUtil.createEscaltedMockCLazz(defClazz, multiClassLoader)
+            }
+
             val applicationBuilder = SpringApplicationBuilder(
                 DefaultResourceLoader(multiClassLoader),
-                twoClazz,
+                twoClazz, *escalatedClazzes.toTypedArray()
             ).apply {
                 bannerMode(Banner.Mode.OFF)
                 initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
@@ -161,7 +176,10 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                     val props = Properties()
                     props["spigot.plugin"] = name
                     propertySources.addLast(PropertiesPropertySource("spring-bukkit", props))
-                    mainContext = it as AnnotationConfigApplicationContext
+
+                    it as AnnotationConfigApplicationContext
+                    it.registerBean(SpigotSpringChildPluginData::class.java, Supplier { spigotSpring })
+                    mainContext = it
                 })
 
                 parentContext = run() as AnnotationConfigApplicationContext
@@ -170,8 +188,6 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             postInitializer.onPostInitialize(parentContext)
             val logger = parentContext.getBean(Logger::class.java)
             logger.info("Main context initialize completed! Starting to load plugins...")
-
-            Thread.currentThread().contextClassLoader = multiClassLoader
 
             val plugins = pluginClassNames.mapNotNull { pluginClazzName ->
                 if (pluginClazzName == SpringSpigotBootstrapper::class.java.name) return@mapNotNull null

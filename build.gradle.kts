@@ -86,3 +86,9 @@ tasks.register("printVersion") {
         println(baseVersion)
     }
 }
+
+tasks.register("printMeta") {
+    doLast {
+        println(baseVersion)
+    }
+}
