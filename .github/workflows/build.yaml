@@ -37,7 +37,7 @@ jobs:
 
       - name: Publish Image to Maven
         id: publish-image
-        run: ./gradlew publishAll -Drelease=true
+        run: ./gradlew publishAll --parallel -Drelease=true
 
       - name: Release Tag
         uses: ncipollo/release-action@v1

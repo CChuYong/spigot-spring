@@ -5,7 +5,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-val isRelease = System.getProperty("release")?.toBoolean() ?: false
+val isRelease = System.getProperty("release") != null
 val baseVersion = "0.0.1"
 group = "kr.chuyong"
 version = "${baseVersion}${if (isRelease) "" else "-SNAPSHOT"}"
