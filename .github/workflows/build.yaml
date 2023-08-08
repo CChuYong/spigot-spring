@@ -16,7 +16,7 @@ jobs:
 
     permissions:
       id-token: write
-      contents: read
+      contents: write
 
     steps:
       - name: Retrieve the repository
@@ -31,10 +31,18 @@ jobs:
       - name: Prepare Gradle
         uses: gradle/gradle-build-action@v2
 
-#      - name: Build Gradle
-#        id: build-image
-#        run: ./gradlew shadowJar //For Release AutoTag
+      - name: Get Version from Gradle
+        id: get_version
+        run: echo "::set-output name=version::$(./gradlew -q printVersion)"
 
       - name: Publish Image to Maven
         id: publish-image
-        run: ./gradlew publish
+        run: ./gradlew publishAll -Drelease=true
+
+      - name: Release Tag
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.get_version.outputs.version }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          commit: ${{ github.sha }}
+          artifacts: 'build/libs/*.jar'

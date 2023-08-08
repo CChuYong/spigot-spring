@@ -1,135 +1,89 @@
-import org.springframework.boot.gradle.tasks.bundling.BootJar
-
 plugins {
     val kotlinVersion = "1.8.0"
-    val springBootVersion = "3.1.1"
+    kotlin("jvm") version kotlinVersion
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "8.1.1"
-
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.spring") version kotlinVersion
-    kotlin("plugin.jpa") version kotlinVersion
-    kotlin("kapt") version kotlinVersion
-
-    id("org.springframework.boot") version springBootVersion
-    id("io.spring.dependency-management") version "1.1.2"
 }
 
-val isRelease = false
+val isRelease = System.getProperty("release")?.toBoolean() ?: false
 val baseVersion = "0.0.1"
 group = "kr.chuyong"
-version = "${baseVersion}${if(isRelease) "" else "-SNAPSHOT"}"
+version = "${baseVersion}${if (isRelease) "" else "-SNAPSHOT"}"
 description = "Spring Boot Spigot Starter"
-java.sourceCompatibility = JavaVersion.VERSION_17
 
-allOpen {
-    annotation("jakarta.persistence.Entity")
-    annotation("jakarta.persistence.MappedSuperclass")
-    annotation("jakarta.persistence.Embeddable")
-}
-
-noArg {
-    annotation("jakarta.persistence.Entity")
-    annotation("jakarta.persistence.MappedSuperclass")
-    annotation("jakarta.persistence.Embeddable")
-}
-
+val parentVersion = version
+val parentGroup = group
 
 repositories {
-    mavenLocal()
     mavenCentral()
-    maven("https://maven.hqservice.kr/repository/maven-public/")
-
-    maven {
-        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    }
-
-    maven {
-        url = uri("https://oss.sonatype.org/content/groups/public/")
-    }
-
-    maven {
-        url = uri("https://jitpack.io")
-    }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
-
-dependencies {
-    implementation("org.springframework.boot:spring-boot-starter:3.1.1")
-    implementation("org.springframework.boot:spring-boot-starter-aop:3.1.1")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1")
-    implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.1")
-
-    compileOnly("org.apache.commons:commons-lang3:3.12.0")
-    compileOnly("com.github.f4b6a3:ulid-creator:5.2.0")
-    compileOnly("com.querydsl:querydsl-jpa:5.0.0:jakarta")
-    compileOnly("mysql:mysql-connector-java:8.0.28")
-    compileOnly("com.h2database:h2:1.4.200")
-    compileOnly("net.bytebuddy:byte-buddy:1.14.5")
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    compileOnly("org.jetbrains.kotlin:kotlin-reflect")
-
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
-
-
-    compileOnly("io.insert-koin:koin-core:3.4.2")
-    compileOnly("kr.hqservice:hqframework-global-core:1.0.0-SNAPSHOT")
-    compileOnly("kr.hqservice:hqframework-bukkit-core:1.0.0-SNAPSHOT")
-    compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
-}
-
-publishing {
-    publications.create<MavenPublication>("maven") {
-        artifactId = "spigot-spring"
-        from(components["kotlin"])
-        artifact(tasks["kotlinSourcesJar"])
-    }
+subprojects {
+    apply(plugin = "kotlin")
+    apply(plugin = "maven-publish")
+    apply(plugin = "com.github.johnrengelman.shadow")
+    this.group = parentGroup
+    this.version = parentVersion
 
     repositories {
-        maven {
-            val urlPath = if(isRelease)
-                uri("https://nexus.chuyong.kr/repository/maven-releases/")
-            else
-                uri("https://nexus.chuyong.kr/repository/maven-snapshots/")
-            name = "CChuYong"
-            url = uri(urlPath)
+        mavenCentral()
+    }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            jvmTarget = "17"
+        }
+    }
+
+    tasks.getByName<Jar>("jar") {
+        enabled = true
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    tasks {
+        withType<Jar> {
+            from(sourceSets["main"].allSource)
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+    }
+
+    tasks {
+        build {
+            dependsOn(shadowJar)
         }
     }
 }
 
-tasks {
-    build {
-        dependsOn(shadowJar)
+task("publishAll") {
+    dependsOn(subprojects.map {
+        it.tasks.getByName("shadowJar")
+    }, subprojects.map {
+        it.tasks.getByName("publish")
+    }) // 모든 모듈의 빌드 태스크 의존성 추가
+
+    doLast {
+        subprojects.forEach { module ->
+            val jarTask = module.tasks.findByName("shadowJar")
+            if (jarTask != null) {
+                val jarFile = jarTask.outputs.files.singleFile
+                val targetDir = File("$buildDir/libs")
+                copy {
+                    from(jarFile)
+                    into(targetDir)
+                }
+            }
+        }
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
-    }
-}
-
-tasks.getByName<BootJar>("bootJar") {
-    enabled = false
-}
-
-tasks.getByName<Jar>("jar") {
-    enabled = true
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-tasks {
-    withType<Jar> {
-        from(sourceSets["main"].allSource)
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+tasks.register("printVersion") {
+    doLast {
+        val version = project.version
+        println("$version")
     }
 }
