@@ -39,7 +39,6 @@ class CustomPluginClassLoader(
             return super.loadClass0(name, resolve, checkGlobal, checkLibraries)
         } catch (e: ClassNotFoundException) {
         }
-
         throw ClassNotFoundException("Cannot find ${name}")
     }
 

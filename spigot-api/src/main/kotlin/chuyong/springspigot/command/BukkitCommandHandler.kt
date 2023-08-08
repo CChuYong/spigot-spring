@@ -20,7 +20,7 @@ class BukkitCommandHandler(
     private val exceptionHandler: BaseCommandExceptionHandler,
     private val logger: Logger,
     private val schedulerService: SchedulerService,
-): CommandRegistry {
+) : CommandRegistry {
     private val mainCMD = HashMap<String, BukkitCommandImpl>()
 
     override fun registerAdvices(beanObject: Any) {

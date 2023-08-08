@@ -3,23 +3,12 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 plugins {
     val kotlinVersion = "1.8.0"
     val springBootVersion = "3.1.1"
-    `maven-publish`
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-
-    kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
-    kotlin("kapt") version kotlinVersion
-
     id("org.springframework.boot") version springBootVersion
     id("io.spring.dependency-management") version "1.1.2"
 }
 
-val isRelease = false
-val baseVersion = "0.0.1"
-group = "kr.chuyong"
-version = "${baseVersion}${if(isRelease) "" else "-SNAPSHOT"}"
-description = "Spring Boot Spigot Starter"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 allOpen {
@@ -32,6 +21,25 @@ noArg {
     annotation("jakarta.persistence.Entity")
     annotation("jakarta.persistence.MappedSuperclass")
     annotation("jakarta.persistence.Embeddable")
+}
+
+publishing {
+    publications.create<MavenPublication>("maven") {
+        artifactId = "spigot-spring-${project.name}"
+        from(components["kotlin"])
+        artifact(tasks["kotlinSourcesJar"])
+    }
+
+    repositories {
+        maven {
+            val urlPath = if (!version.toString().contains("SNAPSHOT"))
+                uri("https://nexus.chuyong.kr/repository/maven-releases/")
+            else
+                uri("https://nexus.chuyong.kr/repository/maven-snapshots/")
+            name = "CChuYong"
+            url = uri(urlPath)
+        }
+    }
 }
 
 
@@ -79,60 +87,19 @@ dependencies {
 
     compileOnly("kr.hqservice:hqframework-global-core:1.0.0-SNAPSHOT")
     compileOnly("kr.hqservice:hqframework-bukkit-core:1.0.0-SNAPSHOT")
-    //compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
-
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 
-}
-
-publishing {
-    publications.create<MavenPublication>("maven") {
-        artifactId = "spigot-spring"
-        from(components["kotlin"])
-        artifact(tasks["kotlinSourcesJar"])
-    }
-
-    repositories {
-        maven {
-            val urlPath = if(isRelease)
-                uri("https://nexus.chuyong.kr/repository/maven-releases/")
-            else
-                uri("https://nexus.chuyong.kr/repository/maven-snapshots/")
-            name = "CChuYong"
-            url = uri(urlPath)
-        }
-    }
-}
-
-tasks {
-    build {
-        dependsOn(shadowJar)
-    }
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
-    }
 }
 
 tasks.getByName<BootJar>("bootJar") {
     enabled = false
 }
 
-tasks.getByName<Jar>("jar") {
-    enabled = true
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-tasks {
-    withType<Jar> {
-        from(sourceSets["main"].allSource)
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+tasks.getByName<ProcessResources>("processResources") {
+    val props = mapOf("version" to version)
+    inputs.properties(props)
+    filteringCharset = Charsets.UTF_8.toString()
+    filesMatching("plugin.yml") {
+        expand(props)
     }
 }

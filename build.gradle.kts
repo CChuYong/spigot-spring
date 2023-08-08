@@ -1,34 +1,89 @@
-
 plugins {
     val kotlinVersion = "1.8.0"
-    val springBootVersion = "3.1.1"
+    kotlin("jvm") version kotlinVersion
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-val isRelease = false
+val isRelease = System.getProperty("release")?.toBoolean() ?: false
 val baseVersion = "0.0.1"
 group = "kr.chuyong"
-version = "${baseVersion}${if(isRelease) "" else "-SNAPSHOT"}"
+version = "${baseVersion}${if (isRelease) "" else "-SNAPSHOT"}"
 description = "Spring Boot Spigot Starter"
 
-dependencies {
+val parentVersion = version
+val parentGroup = group
 
+repositories {
+    mavenCentral()
 }
 
-publishing {
-    publications.create<MavenPublication>("maven") {
-        artifactId = "spigot-spring"
-    }
+subprojects {
+    apply(plugin = "kotlin")
+    apply(plugin = "maven-publish")
+    apply(plugin = "com.github.johnrengelman.shadow")
+    this.group = parentGroup
+    this.version = parentVersion
 
     repositories {
-        maven {
-            val urlPath = if(isRelease)
-                uri("https://nexus.chuyong.kr/repository/maven-releases/")
-            else
-                uri("https://nexus.chuyong.kr/repository/maven-snapshots/")
-            name = "CChuYong"
-            url = uri(urlPath)
+        mavenCentral()
+    }
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+            jvmTarget = "17"
         }
+    }
+
+    tasks.getByName<Jar>("jar") {
+        enabled = true
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    tasks {
+        withType<Jar> {
+            from(sourceSets["main"].allSource)
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+    }
+
+    tasks {
+        build {
+            dependsOn(shadowJar)
+        }
+    }
+}
+
+task("publishAll") {
+    dependsOn(subprojects.map {
+        it.tasks.getByName("shadowJar")
+    }, subprojects.map {
+        it.tasks.getByName("publish")
+    }) // 모든 모듈의 빌드 태스크 의존성 추가
+
+    doLast {
+        subprojects.forEach { module ->
+            val jarTask = module.tasks.findByName("shadowJar")
+            if (jarTask != null) {
+                val jarFile = jarTask.outputs.files.singleFile
+                val targetDir = File("$buildDir/libs")
+                copy {
+                    from(jarFile)
+                    into(targetDir)
+                }
+            }
+        }
+    }
+}
+
+tasks.register("printVersion") {
+    doLast {
+        val version = project.version
+        println("$version")
     }
 }

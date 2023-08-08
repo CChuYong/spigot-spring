@@ -1,7 +1,7 @@
 name: SpigotSpring
 author: CChuYong
 website: https://chuyong.kr
-version: 0.0.1
+version: '${version}'
 main: chuyong.springspigot.SpringSpigotBootstrapper
 api-version: 1.17
 load: STARTUP

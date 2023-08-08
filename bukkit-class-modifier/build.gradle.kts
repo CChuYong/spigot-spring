@@ -24,3 +24,21 @@ tasks.getByName<Jar>("jar") {
         attributes["Premain-Class"] = "chuyong.springspigot.PremainAgent"
     }
 }
+
+publishing {
+    publications.create<MavenPublication>(project.name) {
+        artifactId = "spigot-spring-${project.name}"
+        from(components["java"])
+    }
+
+    repositories {
+        maven {
+            val urlPath = if (!version.toString().contains("SNAPSHOT"))
+                uri("https://nexus.chuyong.kr/repository/maven-releases/")
+            else
+                uri("https://nexus.chuyong.kr/repository/maven-snapshots/")
+            name = "CChuYong"
+            url = uri(urlPath)
+        }
+    }
+}

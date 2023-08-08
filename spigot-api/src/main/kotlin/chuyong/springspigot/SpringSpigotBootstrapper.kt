@@ -1,16 +1,12 @@
 package chuyong.springspigot
 
-import chuyong.springspigot.child.*
+import chuyong.springspigot.child.SpigotSpringChildInitializer
+import chuyong.springspigot.child.SpigotSpringChildPluginData
+import chuyong.springspigot.child.SpringSpigotChildPostInitializer
+import chuyong.springspigot.child.SpringSpigotPluginRegistry
 import chuyong.springspigot.config.BukkitConfigPropertySource
 import chuyong.springspigot.util.*
 import com.google.common.util.concurrent.ThreadFactoryBuilder
-import net.bytebuddy.ByteBuddy
-import net.bytebuddy.description.annotation.AnnotationDescription
-import net.bytebuddy.description.modifier.Visibility
-import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy
-import net.bytebuddy.implementation.MethodCall
-import net.bytebuddy.implementation.MethodDelegation
-import net.bytebuddy.matcher.ElementMatchers
 import org.bukkit.Bukkit
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
@@ -18,17 +14,13 @@ import org.bukkit.plugin.java.JavaPluginLoader
 import org.bukkit.plugin.java.PluginClassLoader
 import org.slf4j.Logger
 import org.springframework.boot.Banner
-import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import org.springframework.context.annotation.EnableAspectJAutoProxy
-import org.springframework.context.annotation.Primary
 import org.springframework.core.env.PropertiesPropertySource
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.core.io.FileSystemResource
-import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.util.StopWatch
 import java.io.File
 import java.net.URL
@@ -64,7 +56,6 @@ class SpringSpigotBootstrapper : JavaPlugin() {
         Bukkit.getConsoleSender()
             .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lSpringSpigot Initialization Progress Initiated...")
 
-        //val globalClassLoader = CompoundClassLoader(masterClassLoader)
         val spigotSpring = SpigotSpringChildPluginData.copyFromPlugin(this)
 
         val pluginClasses = Arrays.stream(Bukkit.getPluginManager().plugins)
@@ -99,7 +90,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                 pluginClassNames.add(plugin.javaClass.name)
                 //  unloadPlugin(plugin)
                 // if(plugin != this)
-                PluginUtil().unloadPlugin(plugin)
+                PluginUtil.unloadPlugin(plugin)
                 data.file.toURI().toURL()
             } catch (e: Exception) {
                 throw RuntimeException(e)
@@ -120,9 +111,6 @@ class SpringSpigotBootstrapper : JavaPlugin() {
 
         val multiClassLoader = CompoundClassLoader(currentContextLoader, classLoader, customLoader)
 
-        //   val crossPluginLoader = URLClassLoader(pluginUrl.toTypedArray(), masterClassLoader)
-        //  globalClassLoader.addLoader(crossPluginLoader)
-
         (classLoader as PluginClassLoader).plugin = null
 
         val f = PluginClassLoader::class.java.getDeclaredField("pluginInit")
@@ -142,7 +130,6 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             (JavaPluginLoader::class.java).getDeclaredField("loaders").let {
                 it.isAccessible = true
                 (it.get(pluginLoader) as MutableList<Any>).add(pluginLoaderzz)
-                println("LOADED LOADER")
             }
         }
 
@@ -152,8 +139,6 @@ class SpringSpigotBootstrapper : JavaPlugin() {
 
         val executor =
             Executors.newSingleThreadExecutor(ThreadFactoryBuilder().setNameFormat("SpringSpigot Bootstrap").build())
-        //val globalResourceLoader = DefaultResourceLoader(globalClassLoader)
-        //  val bootstrapPlugin = this
         CompletableFuture.runAsync({
             Bukkit.getConsoleSender()
                 .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lLoading SpringBoot...")
@@ -194,7 +179,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                 try {
                     val pluginClazz = Class.forName(pluginClazzName, true, multiClassLoader)
                     logger.info("Loading Plugin ${data.description.name}")
-                    val newClazz = createMockClazz(
+                    val newClazz = PluginUtil.createMockClazz(
                         pluginClazz = pluginClazz,
                         classLoader = multiClassLoader,
                     )
@@ -277,44 +262,6 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             }
         }
 
-    }
-
-    private fun createMockClazz(pluginClazz: Class<*>, classLoader: ClassLoader): Class<*> {
-        val pluginConstructor = SpringSpigotChildPlugin::class.java.getConstructor()
-        val newPluginClazz = ByteBuddy()
-            .subclass(SpringSpigotChildPlugin::class.java, ConstructorStrategy.Default.NO_CONSTRUCTORS)
-            .name(pluginClazz.name + "\$ByteBuddy")
-            .annotateType(
-                AnnotationDescription
-                    .Builder
-                    .ofType(SpringBootApplication::class.java)
-                    .defineArray("scanBasePackages", *arrayOf(pluginClazz.`package`.name))
-                    .build()
-            )
-            .annotateType(
-                AnnotationDescription
-                    .Builder
-                    .ofType(Primary::class.java)
-                    .build()
-            )
-            .annotateType(
-                AnnotationDescription
-                    .Builder
-                    .ofType(EnableAsync::class.java)
-                    .build()
-            )
-            .annotateType(
-                AnnotationDescription
-                    .Builder
-                    .ofType(EnableAspectJAutoProxy::class.java)
-                    .build()
-            )
-            .defineConstructor(Visibility.PUBLIC).intercept(MethodCall.invoke(pluginConstructor))
-            .method(ElementMatchers.isDeclaredBy(pluginClazz))
-            .intercept(MethodDelegation.to(pluginClazz))
-            .make()
-
-        return newPluginClazz.load(classLoader).loaded
     }
 
 }

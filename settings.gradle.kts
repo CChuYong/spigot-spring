@@ -1,4 +1,2 @@
 rootProject.name = "spigot-spring"
-include("core-api")
-include("bukkit-class-modifier")
-include("spigot-api")
+include("core-api", "bukkit-class-modifier", "spigot-api")
