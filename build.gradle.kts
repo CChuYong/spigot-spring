@@ -3,6 +3,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("java")
 }
 
 val isRelease = System.getProperty("release") != null
@@ -19,7 +20,8 @@ repositories {
 }
 
 subprojects {
-    apply(plugin = "kotlin")
+    if(name != "bukkit-class-modifier") apply(plugin = "kotlin")
+    else apply(plugin = "java")
     apply(plugin = "maven-publish")
     apply(plugin = "com.github.johnrengelman.shadow")
     this.group = parentGroup

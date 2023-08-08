@@ -7,10 +7,15 @@ class MultiClassLoader(
     parent: ClassLoader?,
     private val mainContextLoader: ClassLoader,
     private val urls: Array<URL>,
-    private val libraryUrls: Array<URL>,
+    private val thirdPartyLibraryLoader: CompoundClassLoader,
 ) : URLClassLoader(urls, parent) {
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
+        try{
+            return thirdPartyLibraryLoader.loadClass(name)
+        }catch(ex: ClassNotFoundException) {
+
+        }
         try {
             return super.loadClass(name, resolve)
         } catch (ex: ClassNotFoundException) {

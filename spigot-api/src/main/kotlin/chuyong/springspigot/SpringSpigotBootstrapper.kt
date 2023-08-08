@@ -13,6 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.plugin.java.JavaPluginLoader
 import org.bukkit.plugin.java.PluginClassLoader
 import org.slf4j.Logger
+import org.springframework.beans.factory.support.SimpleInstantiationStrategy
 import org.springframework.boot.Banner
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ApplicationContextInitializer
@@ -39,6 +40,10 @@ class SpringSpigotBootstrapper : JavaPlugin() {
         lateinit var mainContext: AnnotationConfigApplicationContext
     }
 
+    override fun onLoad() {
+
+    }
+
     override fun onEnable() {
         Bukkit.getScheduler().runTaskLater(this, Runnable {
             loadSpringSpigot()
@@ -47,6 +52,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             val count = parentContext.getBean(SpringSpigotPluginRegistry::class.java).wireContexts(childContexts)
             logger.info("§f§lWired ${count} beans completed...")
         }, 0L)
+
 
     }
 
@@ -111,11 +117,25 @@ class SpringSpigotBootstrapper : JavaPlugin() {
         list.addAll(pluginUrl)
         list.addAll(libraryClasses)
 
+        val libField = PluginClassLoader::class.java.getDeclaredField("libraryLoader").apply {
+            isAccessible = true
+        }
+        val nonRelatedPlugins = Arrays.stream(Bukkit.getPluginManager().plugins)
+            .filter { plugin: Plugin ->
+                (!plugin.javaClass.isAnnotationPresent(
+                    EnableSpringSpigotSupport::class.java
+                )) && plugin != this
+            }
+            .toList()
+            .mapNotNull {
+                libField.get(it::class.java.classLoader) as? URLClassLoader
+            }
+
         val customLoader = MultiClassLoader(
             parent = masterClassLoader,
             mainContextLoader = currentContextLoader,
             urls = list.toTypedArray(),
-            libraryUrls = libraryClasses.toTypedArray(),
+            thirdPartyLibraryLoader = CompoundClassLoader(nonRelatedPlugins),
         )
 
 
