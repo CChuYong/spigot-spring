@@ -58,6 +58,7 @@ kotlin {
 
 dependencies {
     api(project(":core-api"))
+    api(project(":bukkit-api"))
     compileOnly(project(":bukkit-class-modifier"))
     // https://mvnrepository.com/artifact/org.ow2.asm/asm
     compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
@@ -68,7 +69,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux:3.1.1")
 
     compileOnly("org.apache.commons:commons-lang3:3.12.0")
-    compileOnly("com.github.f4b6a3:ulid-creator:5.2.0")
     compileOnly("com.querydsl:querydsl-jpa:5.0.0:jakarta")
     compileOnly("mysql:mysql-connector-java:8.0.28")
     compileOnly("com.h2database:h2:1.4.200")
