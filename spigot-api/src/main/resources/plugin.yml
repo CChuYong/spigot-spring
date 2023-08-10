@@ -5,6 +5,8 @@ version: '${version}'
 main: chuyong.springspigot.SpringSpigotBootstrapper
 api-version: 1.17
 load: STARTUP
+depend:
+  - HQFramework
 libraries:
   - org.apache.commons:commons-lang3:3.12.0
   - com.github.f4b6a3:ulid-creator:5.2.0

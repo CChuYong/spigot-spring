@@ -12,22 +12,28 @@ class MultiClassLoader(
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
         try{
-            return thirdPartyLibraryLoader.loadClass(name)
+            return thirdPartyLibraryLoader.loadClassSafe(name)
         }catch(ex: ClassNotFoundException) {
 
         }
+
         try {
             return super.loadClass(name, resolve)
         } catch (ex: ClassNotFoundException) {
         }
 
-        try {
-            return mainContextLoader.loadClass(name)
-        } catch (ex: ClassNotFoundException) {
+
+
+        try{
+            return thirdPartyLibraryLoader.loadClass(name)
+        }catch(ex: ClassNotFoundException) {
+
         }
+
 
         throw ClassNotFoundException(name)
     }
+
 
     fun readSelf(name: String, resolve: Boolean): Class<*> {
         var c1 = findLoadedClass(name)

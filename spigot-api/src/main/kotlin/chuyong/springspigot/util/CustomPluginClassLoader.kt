@@ -27,6 +27,7 @@ class CustomPluginClassLoader(
 
     init {
         myClazzLoader = customClassLoader
+        isInit = true
     }
 
     override fun loadClass0(name: String, resolve: Boolean, checkGlobal: Boolean, checkLibraries: Boolean): Class<*> {
@@ -35,15 +36,18 @@ class CustomPluginClassLoader(
         } catch (e: Exception) {
         }
 
-        try {
-            return super.loadClass0(name, resolve, checkGlobal, checkLibraries)
-        } catch (e: ClassNotFoundException) {
+        if(!isInit) {
+            try {
+                return super.loadClass0(name, resolve, checkGlobal, checkLibraries)
+            } catch (e: ClassNotFoundException) {
+            }
         }
         throw ClassNotFoundException("Cannot find ${name}")
     }
 
 
     companion object {
+        var isInit = false
         init {
             ClassLoader.registerAsParallelCapable()
         }

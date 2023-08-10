@@ -4,6 +4,7 @@ import java.io.InputStream
 import java.net.URL
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import chuyong.springspigot.PremainAgent
 
 class CompoundClassLoader : ClassLoader {
     private val classLoaders: ArrayList<ClassLoader>
@@ -76,6 +77,15 @@ class CompoundClassLoader : ClassLoader {
 
         }
         throw ClassNotFoundException("Not found clazz $name")
+    }
+
+    @Throws(ClassNotFoundException::class)
+    fun loadClassSafe(name: String): Class<*> {
+        val targetName = name.replace(".", "/")
+        val loadedLoader = classLoaders.firstOrNull {
+            PremainAgent.isClassLoaded(targetName, it)
+        }
+        return loadedLoader?.loadClass(name) ?: throw ClassNotFoundException()
     }
 
     @Throws(ClassNotFoundException::class)

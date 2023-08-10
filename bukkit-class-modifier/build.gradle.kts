@@ -17,6 +17,8 @@ tasks.getByName<Jar>("jar") {
     }
 }
 
+java.sourceCompatibility = JavaVersion.VERSION_17
+
 publishing {
     publications.create<MavenPublication>(project.name) {
         artifactId = "spigot-spring-${project.name}"

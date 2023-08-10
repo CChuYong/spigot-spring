@@ -46,19 +46,10 @@ publishing {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven("https://maven.hqservice.kr/repository/maven-public/")
-
-    maven {
-        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    }
-
-    maven {
-        url = uri("https://oss.sonatype.org/content/groups/public/")
-    }
-
-    maven {
-        url = uri("https://jitpack.io")
-    }
+   // maven("https://maven.hqservice.kr/repository/maven-public/")
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    maven("https://oss.sonatype.org/content/groups/public/")
+    maven("https://jitpack.io")
 }
 
 kotlin {
@@ -67,8 +58,10 @@ kotlin {
 
 dependencies {
     api(project(":core-api"))
+    compileOnly(project(":bukkit-class-modifier"))
     // https://mvnrepository.com/artifact/org.ow2.asm/asm
     compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
+
     implementation("org.springframework.boot:spring-boot-starter:3.1.1")
     implementation("org.springframework.boot:spring-boot-starter-aop:3.1.1")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1")
@@ -85,8 +78,9 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
 
-    compileOnly("kr.hqservice:hqframework-global-core:1.0.0-SNAPSHOT")
-    compileOnly("kr.hqservice:hqframework-bukkit-core:1.0.0-SNAPSHOT")
+
+   // compileOnly("kr.hqservice:hqframework-global-core:1.0.0-SNAPSHOT")
+    //compileOnly("kr.hqservice:hqframework-bukkit-core:1.0.0-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 
 }

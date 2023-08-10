@@ -81,6 +81,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
         }
         val escalatedClassNames = mutableSetOf<String>()
 
+        val libraryLoaders = mutableListOf<URLClassLoader>()
         val libraryClasses = mutableSetOf<URL>()
         val pluginClassNames = mutableListOf<String>()
         val pluginUrl = pluginClasses.mapNotNull { plugin ->
@@ -96,7 +97,11 @@ class SpringSpigotBootstrapper : JavaPlugin() {
 
                 val lib = plugin::class.java.classLoader::class.java.getDeclaredField("libraryLoader").let {
                     it.isAccessible = true
-                    (it.get(plugin::class.java.classLoader) as? URLClassLoader)?.urLs ?: emptyArray()
+                    val loader = (it.get(plugin::class.java.classLoader) as? URLClassLoader)
+                    loader?.apply {
+                        libraryLoaders.add(this)
+                    }
+                    loader?.urLs ?: emptyArray()
                 }
                 libraryClasses.addAll(lib)
                 PluginUtil.unloadPlugin(plugin)
@@ -132,7 +137,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
             }
 
         val customLoader = MultiClassLoader(
-            parent = masterClassLoader,
+            parent = classLoader,
             mainContextLoader = currentContextLoader,
             urls = list.toTypedArray(),
             thirdPartyLibraryLoader = CompoundClassLoader(nonRelatedPlugins),
