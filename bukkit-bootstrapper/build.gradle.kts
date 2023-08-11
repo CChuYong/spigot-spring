@@ -18,13 +18,13 @@ dependencies {
     compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
     // https://mvnrepository.com/artifact/com.google.guava/guava
     compileOnly("com.google.guava:guava:32.1.2-jre")
-    implementation(project(":paper-api"))
+    implementation(project(":bukkit-api"))
     compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
 
 }
 
 tasks.getByName<Jar>("jar") {
-    from(project(":paper-api").tasks.getByName("shadowJar"))
+    from(project(":bukkit-api").tasks.getByName("shadowJar"))
 }
 
 tasks.getByName<Test>("test") {

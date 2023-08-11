@@ -18,7 +18,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class SpigotSpringBootstrapper extends JavaPlugin {
-    String fileName = "paper-api-0.0.2-SNAPSHOT-all.jar";
+    String fileName = "bukkit-api-0.0.2-SNAPSHOT-all.jar";
 
     @Override
     public void onEnable() {
@@ -101,7 +101,7 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
                     ClassLoader.class,
                     SpringSpigotContextClassLoader.class
             );
-            Object res =  constructor.newInstance(
+            Object res = constructor.newInstance(
                     (JavaPluginLoader) getPluginLoader(),
                     Thread.currentThread().getContextClassLoader(),
                     descFile,
