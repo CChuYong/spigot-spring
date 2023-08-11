@@ -33,7 +33,7 @@ class SpringSpigotBootstrapper(
     val plugin: JavaPlugin,
     val selfLoader: URLClassLoader,
     val springSpigotLoader: URLClassLoader,
-    val contextLoader: URLClassLoader,
+    val contextLoader: Any,
 ): Plugin by plugin {
     lateinit var parentContext: AnnotationConfigApplicationContext
     private val childContexts = mutableListOf<ConfigurableApplicationContext>()
@@ -270,11 +270,6 @@ class SpringSpigotBootstrapper(
             configurationFile.file.createNewFile()
         }
         return YamlPropertiesFactory.loadYamlIntoProperties(configurationFile)!!
-    }
-
-    private fun unloadPlugin(plugin: JavaPlugin) {
-        server.pluginManager.disablePlugin(plugin)
-
     }
 
     fun registerClassLoader(classLoader: SpringSpigotContextClassLoader) {

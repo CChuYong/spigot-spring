@@ -8,6 +8,7 @@ version = "0.0.2-SNAPSHOT"
 repositories {
     mavenCentral()
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+    maven("https://repo.papermc.io/repository/maven-public/")
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_17
@@ -17,8 +18,13 @@ dependencies {
     compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
     // https://mvnrepository.com/artifact/com.google.guava/guava
     compileOnly("com.google.guava:guava:32.1.2-jre")
-    compileOnly(project(":paper-api"))
+    implementation(project(":paper-api"))
+    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
 
+}
+
+tasks.getByName<Jar>("jar") {
+    from(project(":paper-api").tasks.getByName("shadowJar"))
 }
 
 tasks.getByName<Test>("test") {

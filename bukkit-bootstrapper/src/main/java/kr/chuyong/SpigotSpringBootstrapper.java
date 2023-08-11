@@ -5,10 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.java.PluginClassLoader;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -16,12 +13,12 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 
 public class SpigotSpringBootstrapper extends JavaPlugin {
+    String fileName = "paper-api-0.0.2-SNAPSHOT-all.jar";
     @Override
     public void onEnable() {
         try{
@@ -34,18 +31,49 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             fileField.setAccessible(true);
             File currentPluginFile = (File) fileField.get(getClassLoader());
 
-            File jarFile = new File("test.jar");
-            SpringSpigotContextClassLoader loader = loadPlugin(jarFile, libLoader.getURLs());
+            File libsPath = new File("libs");
+            if(!libsPath.exists())
+                libsPath.mkdirs();
+
+            File jarPath = new File(libsPath, fileName);
+            if(!jarPath.exists()) {
+                InputStream ins = getResource(fileName);
+                try(FileOutputStream fos = new FileOutputStream(jarPath)) {
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = ins.read(buf)) > 0) {
+                        fos.write(buf, 0, len);
+                    }
+                }
+                getLogger().info("Saving " + fileName + " to " + jarPath.getAbsolutePath());
+            }
+
+            SpringSpigotContextClassLoader loader = loadPlugin(jarPath, libLoader.getURLs());
             Class<?> k = Class.forName("chuyong.springspigot.SpringSpigotBootstrapper", true, loader);
             Method startMethod = k.getDeclaredMethod("start");
-            Constructor cs = k.getConstructor(JavaPlugin.class, URLClassLoader.class, URLClassLoader.class, URLClassLoader.class);
-            URLClassLoader contextLoader =          addOnSpigot(loader, currentPluginFile);
+            Constructor cs = k.getConstructor(JavaPlugin.class, URLClassLoader.class, URLClassLoader.class, Object.class);
+            Object contextLoader = isPaperAvailable() ? addOnPaper(loader)  : addOnSpigot(loader, currentPluginFile);
+
             Object instance = cs.newInstance(this, loader, getClassLoader(), contextLoader);
             startMethod.invoke(instance);
         }catch(Exception ex){
             ex.printStackTrace();
         }
 
+    }
+
+    private Object addOnPaper(SpringSpigotContextClassLoader mainLoader) {
+        try{
+            Class<?> clazz = Class.forName("kr.chuyong.PaperCustomPluginLoader");
+            Constructor<?> constructor = clazz.getConstructor(JavaPlugin.class, SpringSpigotContextClassLoader.class);
+            return constructor.newInstance(
+                    this,
+                    mainLoader
+            );
+        }catch(Exception ex){
+            ex.printStackTrace();
+            throw new RuntimeException();
+        }
     }
 
     private URLClassLoader addOnSpigot(SpringSpigotContextClassLoader mainloader, File file) {
@@ -83,6 +111,15 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             throw new RuntimeException();
         }
 
+    }
+
+    private boolean isPaperAvailable() {
+        try{
+            Class.forName("io.papermc.paper.plugin.provider.classloader.ConfiguredPluginClassLoader");
+            return true;
+        } catch(ClassNotFoundException ex) {
+            return false;
+        }
     }
 
 
