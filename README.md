@@ -37,13 +37,8 @@ class MySpecialPlugin : JavaPlugin() {
 
 ## Known issues
 
-### My plugin's external library dependency collision with SpringSpigot!
-
-SpigotSpring Plugin uses Bukkit's PluginClassLoader while bootstrapping, so cannot override bukkit's default
-dependencies (ex: latest netty, guava.. etc)
-
-### Cannot use external SpringBoot starter libraries!
-
-All Bukkit's plugin has unique `PluginClassLoader`, So if individual plugin loads springboot related classes, it will
-cause classloader exception. (SpringBoot's A class can loaded both SpigotSpring and your plugin, but it treated as
-different class)
+### SpigotSpring throws `java.lang.IllegalAccessError` while loading
+Paper API provides custom implementation for PluginClassLoaders.
+However, Spigot API restricts inheritance of PluginClassLoader.  
+Thus, we created small java-agent which modify PluginClassLoader's Access Modifier to public.  
+If your server uses Spigot, you should download `spigot-class-modifier` and start bukkit with flag `-javaagent:spigot-class-modifier.jar`.
