@@ -77,7 +77,7 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
         }
     }
 
-    private URLClassLoader addOnSpigot(SpringSpigotContextClassLoader mainloader, File file) {
+    private Object addOnSpigot(SpringSpigotContextClassLoader mainloader, File file) {
         try {
             PluginDescriptionFile descFile = getDescription();
             File dataFolder = getDataFolder();
@@ -91,7 +91,17 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             pluginField.setAccessible(true);
             pluginField.set(getClassLoader(), null);
 
-            SpigotPluginClassLoader loader = new SpigotPluginClassLoader(
+            Class<?> clazz = Class.forName("kr.chuyong.SpigotPluginClassLoader");
+            Constructor<?> constructor = clazz.getConstructor(
+                    JavaPluginLoader.class,
+                    ClassLoader.class,
+                    PluginDescriptionFile.class,
+                    File.class,
+                    File.class,
+                    ClassLoader.class,
+                    SpringSpigotContextClassLoader.class
+            );
+            Object res =  constructor.newInstance(
                     (JavaPluginLoader) getPluginLoader(),
                     Thread.currentThread().getContextClassLoader(),
                     descFile,
@@ -101,12 +111,13 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
                     mainloader
             );
 
+
             ((PluginClassLoader) getClassLoader()).plugin = this;
 
             Field loaderField = getPluginLoader().getClass().getDeclaredField("loaders");
             loaderField.setAccessible(true);
-            ((List) loaderField.get(getPluginLoader())).add(loader);
-            return loader;
+            ((List) loaderField.get(getPluginLoader())).add(res);
+            return res;
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException();
