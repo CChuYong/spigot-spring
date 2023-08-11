@@ -1,5 +1,8 @@
 package chuyong.springspigot.child
 
+import chuyong.springspigot.EnableEscalatedSpringSpigotSupport
+import chuyong.springspigot.util.PluginUtil
+import chuyong.springspigot.util.SpringSpigotContextClassLoader
 import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.base.Charsets
 import org.bukkit.configuration.file.FileConfiguration
@@ -12,6 +15,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
+import java.net.URLClassLoader
 import java.util.*
 
 data class SpigotSpringChildPluginData(
@@ -21,12 +25,29 @@ data class SpigotSpringChildPluginData(
     val dataFolder: File,
     private val newConfig: FileConfiguration?,
     val configFile: File,
+    val libraryUrls: Array<URL>,
 ) {
+    var classLoader: SpringSpigotContextClassLoader? = null
+    lateinit var mainClass: Class<*>
+    var isEscalated = false
     var actualConfig = newConfig ?: Unit.let {
         val newConfig = YamlConfiguration.loadConfiguration(configFile)
         val defConfigStream = getResource("config.yml") ?: return@let null
         newConfig.setDefaults(YamlConfiguration.loadConfiguration(InputStreamReader(defConfigStream, Charsets.UTF_8)))
         return@let newConfig
+    }
+
+    fun initLoader(parent: ClassLoader, springSpigotLoader: ClassLoader) {
+        classLoader = SpringSpigotContextClassLoader(
+            parent = parent,
+            file = file,
+            description = description,
+            additional = libraryUrls,
+            springSpigotLoader = springSpigotLoader,
+        )
+        val pluginClazz = Class.forName(description.main, true, classLoader)
+        isEscalated = pluginClazz.isAnnotationPresent(EnableEscalatedSpringSpigotSupport::class.java)
+        mainClass = if(isEscalated) PluginUtil.createEscaltedMockCLazz(pluginClazz, classLoader!!) else PluginUtil.createMockClazz(pluginClazz, classLoader!!)
     }
 
     fun getContextApplicationProperties(): Properties? {
@@ -67,6 +88,11 @@ data class SpigotSpringChildPluginData(
                 plugin.dataFolder,
                 plugin.config,
                 configFile,
+                plugin::class.java.classLoader::class.java.getDeclaredField("libraryLoader").let {
+                    it.isAccessible = true
+                    val loader = (it.get(plugin::class.java.classLoader) as? URLClassLoader)
+                    loader?.urLs ?: emptyArray()
+                }
             )
         }
     }

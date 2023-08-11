@@ -87,12 +87,3 @@ dependencies {
 tasks.getByName<BootJar>("bootJar") {
     enabled = false
 }
-
-tasks.getByName<ProcessResources>("processResources") {
-    val props = mapOf("version" to version)
-    inputs.properties(props)
-    filteringCharset = Charsets.UTF_8.toString()
-    filesMatching("plugin.yml") {
-        expand(props)
-    }
-}

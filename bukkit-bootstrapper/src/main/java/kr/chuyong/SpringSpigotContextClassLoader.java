@@ -39,6 +39,10 @@ public class SpringSpigotContextClassLoader extends URLClassLoader {
         this.pluginClassLoader = pluginClassLoader;
     }
 
+    public void addSource(URL url) {
+        addURL(url);
+    }
+
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         return loadClass0(name, resolve, true, true);
