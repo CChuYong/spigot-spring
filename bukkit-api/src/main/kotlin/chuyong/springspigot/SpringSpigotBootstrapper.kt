@@ -45,11 +45,13 @@ class SpringSpigotBootstrapper(
     }
 
     fun start() {
-        loadSpringSpigot()
-        val logger = parentContext.getBean(Logger::class.java)
-        logger.info("Trying wire plugins...")
-        val count = parentContext.getBean(SpringSpigotPluginRegistry::class.java).wireContexts(childContexts)
-        logger.info("§f§lWired ${count} beans completed...")
+        server.scheduler.runTaskLater(this, Runnable {
+            loadSpringSpigot()
+            val logger = parentContext.getBean(Logger::class.java)
+            logger.info("Trying wire plugins...")
+            val count = parentContext.getBean(SpringSpigotPluginRegistry::class.java).wireContexts(childContexts)
+            logger.info("§f§lWired ${count} beans completed...")
+        }, 0L)
     }
 
     fun stop() {
@@ -86,7 +88,8 @@ class SpringSpigotBootstrapper(
                 Bukkit.getConsoleSender()
                     .sendMessage("§f§l[§6SpringSpigot§f§l] Disabling plugin " + plugin.name + " To load from SpringSpigot..")
 
-                Bukkit.getPluginManager().disablePlugin(plugin)
+                PluginUtil.unloadPlugin(plugin)
+               // Bukkit.getPluginManager().disablePlugin(plugin)
                 data.initLoader(selfLoader, springSpigotLoader)
                 if(!data.isEscalated)
                     registerClassLoader(data.classLoader!!)
