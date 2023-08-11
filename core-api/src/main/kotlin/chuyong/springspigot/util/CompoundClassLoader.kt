@@ -11,8 +11,10 @@ class CompoundClassLoader : ClassLoader {
     private val classCache = ConcurrentHashMap<String, Class<*>>()
 
     var isLoadedMethod: Method
+
     init {
-        isLoadedMethod = ClassLoader.getSystemClassLoader().loadClass("chuyong.springspigot.PremainAgent").getDeclaredMethod("isClassLoaded", String::class.java, ClassLoader::class.java)
+        isLoadedMethod = ClassLoader.getSystemClassLoader().loadClass("chuyong.springspigot.PremainAgent")
+            .getDeclaredMethod("isClassLoaded", String::class.java, ClassLoader::class.java)
     }
 
     fun isClassLoaded(name: String, loader: ClassLoader): Boolean {

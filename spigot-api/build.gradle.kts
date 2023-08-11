@@ -46,7 +46,7 @@ publishing {
 repositories {
     mavenLocal()
     mavenCentral()
-   // maven("https://maven.hqservice.kr/repository/maven-public/")
+    // maven("https://maven.hqservice.kr/repository/maven-public/")
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/groups/public/")
     maven("https://jitpack.io")
@@ -79,7 +79,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
 
 
-   // compileOnly("kr.hqservice:hqframework-global-core:1.0.0-SNAPSHOT")
+    // compileOnly("kr.hqservice:hqframework-global-core:1.0.0-SNAPSHOT")
     //compileOnly("kr.hqservice:hqframework-bukkit-core:1.0.0-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 

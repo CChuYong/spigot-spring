@@ -14,8 +14,9 @@ import java.util.function.Function;
 
 public class SpigotPluginClassLoader extends PluginClassLoader {
     private final SpringSpigotContextClassLoader mainClassLoader;
-    private final List<Function<String, Class<?>> > childClassLoaders = new ArrayList<>();
+    private final List<Function<String, Class<?>>> childClassLoaders = new ArrayList<>();
     private boolean isInit = false;
+
     public SpigotPluginClassLoader(JavaPluginLoader loader, ClassLoader parent, PluginDescriptionFile description, File dataFolder, File file, ClassLoader libraryLoader, SpringSpigotContextClassLoader mainLoader) throws IOException, InvalidPluginException, MalformedURLException {
         super(loader, parent, description, dataFolder, file, libraryLoader);
         this.mainClassLoader = mainLoader;
@@ -24,17 +25,17 @@ public class SpigotPluginClassLoader extends PluginClassLoader {
 
     @Override
     public Class<?> loadClass0(String name, boolean resolve, boolean checkGlobal, boolean checkLibraries) throws ClassNotFoundException {
-        if(!isInit){
+        if (!isInit) {
             return super.loadClass0(name, resolve, checkGlobal, checkLibraries);
         }
-        try{
+        try {
             mainClassLoader.readSelf(name, resolve);
-        }catch( Exception exe ) {
+        } catch (Exception exe) {
 
         }
-        for(Function<String, Class<?>> loader : childClassLoaders) {
+        for (Function<String, Class<?>> loader : childClassLoaders) {
             Class<?> foundClass = loader.apply(name);
-            if(foundClass != null) return foundClass;
+            if (foundClass != null) return foundClass;
         }
 
         throw new ClassNotFoundException();

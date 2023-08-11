@@ -36,7 +36,7 @@ class CustomPluginClassLoader(
         } catch (e: Exception) {
         }
 
-        if(!isInit) {
+        if (!isInit) {
             try {
                 return super.loadClass0(name, resolve, checkGlobal, checkLibraries)
             } catch (e: ClassNotFoundException) {
@@ -48,6 +48,7 @@ class CustomPluginClassLoader(
 
     companion object {
         var isInit = false
+
         init {
             ClassLoader.registerAsParallelCapable()
         }

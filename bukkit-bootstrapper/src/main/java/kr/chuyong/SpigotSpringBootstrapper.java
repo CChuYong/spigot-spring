@@ -1,6 +1,8 @@
 package kr.chuyong;
 
-import org.bukkit.plugin.*;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.InvalidPluginException;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.JavaPluginLoader;
 import org.bukkit.plugin.java.PluginClassLoader;
@@ -12,16 +14,15 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
 
 public class SpigotSpringBootstrapper extends JavaPlugin {
     String fileName = "paper-api-0.0.2-SNAPSHOT-all.jar";
+
     @Override
     public void onEnable() {
-        try{
+        try {
             Field libraryLoader = getClassLoader().getClass().getDeclaredField("libraryLoader");
             libraryLoader.setAccessible(true);
             URLClassLoader libLoader = (URLClassLoader) libraryLoader.get(getClassLoader());
@@ -32,13 +33,13 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             File currentPluginFile = (File) fileField.get(getClassLoader());
 
             File libsPath = new File("libs");
-            if(!libsPath.exists())
+            if (!libsPath.exists())
                 libsPath.mkdirs();
 
             File jarPath = new File(libsPath, fileName);
-            if(!jarPath.exists()) {
+            if (!jarPath.exists()) {
                 InputStream ins = getResource(fileName);
-                try(FileOutputStream fos = new FileOutputStream(jarPath)) {
+                try (FileOutputStream fos = new FileOutputStream(jarPath)) {
                     byte[] buf = new byte[1024];
                     int len;
                     while ((len = ins.read(buf)) > 0) {
@@ -52,32 +53,32 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             Class<?> k = Class.forName("chuyong.springspigot.SpringSpigotBootstrapper", true, loader);
             Method startMethod = k.getDeclaredMethod("start");
             Constructor cs = k.getConstructor(JavaPlugin.class, URLClassLoader.class, URLClassLoader.class, Object.class);
-            Object contextLoader = isPaperAvailable() ? addOnPaper(loader)  : addOnSpigot(loader, currentPluginFile);
+            Object contextLoader = isPaperAvailable() ? addOnPaper(loader) : addOnSpigot(loader, currentPluginFile);
 
             Object instance = cs.newInstance(this, loader, getClassLoader(), contextLoader);
             startMethod.invoke(instance);
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
 
     }
 
     private Object addOnPaper(SpringSpigotContextClassLoader mainLoader) {
-        try{
+        try {
             Class<?> clazz = Class.forName("kr.chuyong.PaperCustomPluginLoader");
             Constructor<?> constructor = clazz.getConstructor(JavaPlugin.class, SpringSpigotContextClassLoader.class);
             return constructor.newInstance(
                     this,
                     mainLoader
             );
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException();
         }
     }
 
     private URLClassLoader addOnSpigot(SpringSpigotContextClassLoader mainloader, File file) {
-        try{
+        try {
             PluginDescriptionFile descFile = getDescription();
             File dataFolder = getDataFolder();
 
@@ -85,7 +86,7 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             mainField.setAccessible(true);
             mainField.set(descFile, "kr.chuyong.MockJavaPlugin");
 
-            ((PluginClassLoader)getClassLoader()).plugin = null;
+            ((PluginClassLoader) getClassLoader()).plugin = null;
             Field pluginField = PluginClassLoader.class.getDeclaredField("pluginInit");
             pluginField.setAccessible(true);
             pluginField.set(getClassLoader(), null);
@@ -95,18 +96,18 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
                     Thread.currentThread().getContextClassLoader(),
                     descFile,
                     dataFolder,
-                   file,
+                    file,
                     null,
                     mainloader
             );
 
-            ((PluginClassLoader)getClassLoader()).plugin = this;
+            ((PluginClassLoader) getClassLoader()).plugin = this;
 
             Field loaderField = getPluginLoader().getClass().getDeclaredField("loaders");
             loaderField.setAccessible(true);
-            ((List)loaderField.get(getPluginLoader())).add(loader);
+            ((List) loaderField.get(getPluginLoader())).add(loader);
             return loader;
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException();
         }
@@ -114,16 +115,16 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
     }
 
     private boolean isPaperAvailable() {
-        try{
+        try {
             Class.forName("io.papermc.paper.plugin.provider.classloader.ConfiguredPluginClassLoader");
             return true;
-        } catch(ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
             return false;
         }
     }
 
 
-    public SpringSpigotContextClassLoader loadPlugin(final File file, URL[] additional) throws InvalidPluginException, IOException{
+    public SpringSpigotContextClassLoader loadPlugin(final File file, URL[] additional) throws InvalidPluginException, IOException {
 
         if (!file.exists()) {
             throw new InvalidPluginException(new FileNotFoundException(file.getPath() + " does not exist"));
@@ -138,8 +139,7 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
 
         final File parentFile = file.getParentFile();
         final File dataFolder = new File(parentFile, description.getName());
-        @SuppressWarnings("deprecation")
-        final File oldDataFolder = new File(parentFile, description.getRawName());
+        @SuppressWarnings("deprecation") final File oldDataFolder = new File(parentFile, description.getRawName());
 
         if (dataFolder.equals(oldDataFolder)) {
         } else if (dataFolder.isDirectory() && oldDataFolder.isDirectory()) {

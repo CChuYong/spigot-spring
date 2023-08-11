@@ -5,7 +5,9 @@ import chuyong.springspigot.child.SpigotSpringChildPluginData
 import chuyong.springspigot.child.SpringSpigotChildPostInitializer
 import chuyong.springspigot.child.SpringSpigotPluginRegistry
 import chuyong.springspigot.config.BukkitConfigPropertySource
-import chuyong.springspigot.util.*
+import chuyong.springspigot.util.PluginUtil
+import chuyong.springspigot.util.SpringSpigotContextClassLoader
+import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.bukkit.Bukkit
 import org.bukkit.plugin.Plugin
@@ -34,7 +36,7 @@ class SpringSpigotBootstrapper(
     val selfLoader: URLClassLoader,
     val springSpigotLoader: URLClassLoader,
     val contextLoader: Any,
-): Plugin by plugin {
+) : Plugin by plugin {
     lateinit var parentContext: AnnotationConfigApplicationContext
     private val childContexts = mutableListOf<ConfigurableApplicationContext>()
 
@@ -116,8 +118,8 @@ class SpringSpigotBootstrapper(
                 }
                 libraryClasses.addAll(lib)
                 Bukkit.getPluginManager().disablePlugin(plugin)
-              //  PluginUtil.unloadPlugin(plugin)
-                if(isNormalContext){
+                //  PluginUtil.unloadPlugin(plugin)
+                if (isNormalContext) {
                     pluginClassNames.add(plugin.javaClass.name)
                 } else {
                     Bukkit.getConsoleSender()
@@ -149,7 +151,7 @@ class SpringSpigotBootstrapper(
 
         val myClazz = SpringSpigotApplication::class.java.name
 
-      //  val multiClassLoader = CompoundClassLoader( classLoader, customLoader,)
+        //  val multiClassLoader = CompoundClassLoader( classLoader, customLoader,)
         val multiClassLoader = selfLoader
 
         Bukkit.getConsoleSender()
@@ -161,7 +163,7 @@ class SpringSpigotBootstrapper(
         CompletableFuture.runAsync({
             Bukkit.getConsoleSender()
                 .sendMessage("§f§l[§6SpringSpigot§f§l] §f§lLoading SpringBoot...")
-           // unloadPlugin(this)
+            // unloadPlugin(this)
 
             Thread.currentThread().contextClassLoader = multiClassLoader
 
@@ -273,7 +275,7 @@ class SpringSpigotBootstrapper(
     }
 
     fun registerClassLoader(classLoader: SpringSpigotContextClassLoader) {
-        val fn : java.util.function.Function<String, Class<*>?> = java.util.function.Function { name ->
+        val fn: java.util.function.Function<String, Class<*>?> = java.util.function.Function { name ->
             try {
                 classLoader.readSelf(name, true)
             } catch (e: ClassNotFoundException) {

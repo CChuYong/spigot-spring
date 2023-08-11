@@ -11,9 +11,9 @@ class MultiClassLoader(
 ) : URLClassLoader(urls, parent) {
     @Throws(ClassNotFoundException::class)
     override fun loadClass(name: String, resolve: Boolean): Class<*> {
-        try{
+        try {
             return thirdPartyLibraryLoader.loadClassSafe(name)
-        }catch(ex: ClassNotFoundException) {
+        } catch (ex: ClassNotFoundException) {
 
         }
 
@@ -24,9 +24,9 @@ class MultiClassLoader(
 
 
 
-        try{
+        try {
             return thirdPartyLibraryLoader.loadClass(name)
-        }catch(ex: ClassNotFoundException) {
+        } catch (ex: ClassNotFoundException) {
 
         }
 

@@ -1,11 +1,6 @@
 package chuyong.springspigot.log
 
-import org.bukkit.ChatColor
-import org.bukkit.Server
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
 import org.springframework.stereotype.Component
-import java.lang.reflect.Method
 
 //@Component
 //@ConditionalOnClass(name = ["org.bukkit.craftbukkit.v1_19_R3.command.ColouredConsoleSender"])

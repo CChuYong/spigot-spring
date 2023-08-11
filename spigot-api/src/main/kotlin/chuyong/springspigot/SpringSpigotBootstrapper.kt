@@ -13,7 +13,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.plugin.java.JavaPluginLoader
 import org.bukkit.plugin.java.PluginClassLoader
 import org.slf4j.Logger
-import org.springframework.beans.factory.support.SimpleInstantiationStrategy
 import org.springframework.boot.Banner
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ApplicationContextInitializer
@@ -105,7 +104,7 @@ class SpringSpigotBootstrapper : JavaPlugin() {
                 }
                 libraryClasses.addAll(lib)
                 PluginUtil.unloadPlugin(plugin)
-                if(!cfg.contextEscalation){
+                if (!cfg.contextEscalation) {
                     pluginClassNames.add(plugin.javaClass.name)
                 } else {
                     Bukkit.getConsoleSender()

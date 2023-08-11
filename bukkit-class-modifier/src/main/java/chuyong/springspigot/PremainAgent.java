@@ -1,5 +1,7 @@
 package chuyong.springspigot;
 
+import org.objectweb.asm.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
@@ -11,9 +13,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.objectweb.asm.*;
-
 public class PremainAgent implements ClassFileTransformer {
+    private static PremainAgent AGENT = null;
+    /**
+     * Agent "main" equivalent
+     */
+
+    private final Map<ClassLoader, Set<String>> classMap = new WeakHashMap<ClassLoader, Set<String>>();
+
     public static void premain(String agentArgs, Instrumentation inst) {
         AGENT = new PremainAgent();
         for (Class<?> clazz : inst.getAllLoadedClasses()) {
@@ -26,9 +33,9 @@ public class PremainAgent implements ClassFileTransformer {
                                     ProtectionDomain protectionDomain, byte[] classfileBuffer)
                     throws IllegalClassFormatException {
                 if (className.equals("org/bukkit/plugin/java/PluginClassLoader")) {
-                    try{
+                    try {
                         return modifyAccessModifier(classfileBuffer);
-                    }catch(IOException ex){
+                    } catch (IOException ex) {
                         ex.printStackTrace();
                     }
                 }
@@ -36,7 +43,6 @@ public class PremainAgent implements ClassFileTransformer {
             }
         });
     }
-
 
     public static byte[] modifyAccessModifier(byte[] classBytes) throws IOException {
         ClassReader classReader = new ClassReader(new ByteArrayInputStream(classBytes));
@@ -67,11 +73,21 @@ public class PremainAgent implements ClassFileTransformer {
         return classWriter.toByteArray();
     }
 
-    private static PremainAgent AGENT = null;
-
-    /** Agent "main" equivalent */
-
-    private final Map<ClassLoader, Set<String>> classMap = new WeakHashMap<ClassLoader, Set<String>>();
+    public static boolean isClassLoaded(String className, ClassLoader loader) {
+        if (AGENT == null) {
+            throw new IllegalStateException("Agent not initialized");
+        }
+        if (loader == null || className == null) {
+            throw new IllegalArgumentException();
+        }
+        while (loader != null) {
+            if (AGENT.isLoaded(className, loader)) {
+                return true;
+            }
+            loader = loader.getParent();
+        }
+        return false;
+    }
 
     private void add(Class<?> clazz) {
         add(clazz.getClassLoader(), clazz.getName());
@@ -79,7 +95,7 @@ public class PremainAgent implements ClassFileTransformer {
 
     private void add(ClassLoader loader, String className) {
         synchronized (classMap) {
-           // System.out.println("loaded: " + className);
+            // System.out.println("loaded: " + className);
             Set<String> set = classMap.computeIfAbsent(loader, k -> new HashSet<String>());
             set.add(className);
         }
@@ -101,21 +117,5 @@ public class PremainAgent implements ClassFileTransformer {
                             byte[] classfileBuffer) throws IllegalClassFormatException {
         add(loader, className);
         return classfileBuffer;
-    }
-
-    public static boolean isClassLoaded(String className, ClassLoader loader) {
-        if (AGENT == null) {
-            throw new IllegalStateException("Agent not initialized");
-        }
-        if (loader == null || className == null) {
-            throw new IllegalArgumentException();
-        }
-        while (loader != null) {
-            if (AGENT.isLoaded(className, loader)) {
-                return true;
-            }
-            loader = loader.getParent();
-        }
-        return false;
     }
 }

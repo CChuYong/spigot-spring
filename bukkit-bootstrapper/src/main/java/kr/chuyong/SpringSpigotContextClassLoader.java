@@ -12,7 +12,6 @@ import java.net.URLClassLoader;
 import java.security.CodeSigner;
 import java.security.CodeSource;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
@@ -22,6 +21,11 @@ import java.util.jar.Manifest;
 public class SpringSpigotContextClassLoader extends URLClassLoader {
     private final Map<String, Class<?>> classes = new ConcurrentHashMap<String, Class<?>>();
     private final PluginDescriptionFile description;
+    private final Manifest manifest;
+    private final URL url;
+    private final URLClassLoader pluginClassLoader;
+    private JarFile jar;
+
     public SpringSpigotContextClassLoader(File file, URL[] additional, PluginDescriptionFile description, ClassLoader parent, URLClassLoader pluginClassLoader) throws IOException {
         super(new URL[]{file.toURI().toURL()}, parent);
         Arrays.stream(additional).forEach(url -> {
@@ -34,18 +38,13 @@ public class SpringSpigotContextClassLoader extends URLClassLoader {
         this.description = description;
         this.pluginClassLoader = pluginClassLoader;
     }
-    private JarFile jar;
-    private final Manifest manifest;
-    private final URL url;
-
-    private final URLClassLoader pluginClassLoader;
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
         return loadClass0(name, resolve, true, true);
     }
 
-    Class<?> loadClass0( String name, boolean resolve, boolean checkGlobal, boolean checkLibraries) throws ClassNotFoundException {
+    Class<?> loadClass0(String name, boolean resolve, boolean checkGlobal, boolean checkLibraries) throws ClassNotFoundException {
         try {
             Class<?> result = super.loadClass(name, resolve);
 
@@ -58,7 +57,7 @@ public class SpringSpigotContextClassLoader extends URLClassLoader {
 
         try {
             return pluginClassLoader.loadClass(name);
-        }catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
         }
 
         throw new ClassNotFoundException(name);
@@ -122,9 +121,9 @@ public class SpringSpigotContextClassLoader extends URLClassLoader {
 
     Class<?> readSelf(String name, Boolean resolve) throws ClassNotFoundException {
         Class<?> c1 = findLoadedClass(name);
-        if(c1 == null) {
-                c1 = findClass(name);
-                if(resolve) resolveClass(c1);
+        if (c1 == null) {
+            c1 = findClass(name);
+            if (resolve) resolveClass(c1);
         }
         return c1;
     }

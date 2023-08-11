@@ -8,9 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +24,7 @@ public class PaperCustomPluginLoader implements ConfiguredPluginClassLoader {
         this.mainClassLoader = mainClassLoader;
         group = PaperClassLoaderStorage.instance().registerOpenGroup(this);
     }
+
     @Override
     public PluginMeta getConfiguration() {
         try {
@@ -39,14 +37,14 @@ public class PaperCustomPluginLoader implements ConfiguredPluginClassLoader {
 
     @Override
     public Class<?> loadClass(@NotNull String name, boolean resolve, boolean checkGlobal, boolean checkLibraries) throws ClassNotFoundException {
-        try{
+        try {
             mainClassLoader.readSelf(name, resolve);
-        }catch( Exception exe ) {
+        } catch (Exception exe) {
 
         }
-        for(Function<String, Class<?>> loader : childClassLoaders) {
+        for (Function<String, Class<?>> loader : childClassLoaders) {
             Class<?> foundClass = loader.apply(name);
-            if(foundClass != null) return foundClass;
+            if (foundClass != null) return foundClass;
         }
 
         throw new ClassNotFoundException();

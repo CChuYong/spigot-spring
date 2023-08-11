@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component
 import java.lang.reflect.Method
 
 @Component
-class SpringAsyncExceptionHandler: AsyncUncaughtExceptionHandler {
+class SpringAsyncExceptionHandler : AsyncUncaughtExceptionHandler {
     override fun handleUncaughtException(ex: Throwable, method: Method, vararg params: Any?) {
         ex.printStackTrace()
     }

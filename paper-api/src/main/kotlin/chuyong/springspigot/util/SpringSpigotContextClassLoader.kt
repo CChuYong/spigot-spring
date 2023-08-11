@@ -3,13 +3,11 @@ package chuyong.springspigot.util
 import com.google.common.io.ByteStreams
 import org.bukkit.Bukkit
 import org.bukkit.plugin.PluginDescriptionFile
-import org.bukkit.plugin.PluginLoader
 import java.io.File
 import java.io.IOException
 import java.net.URL
 import java.net.URLClassLoader
 import java.security.CodeSource
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarFile
 import java.util.jar.Manifest
@@ -43,7 +41,7 @@ class SpringSpigotContextClassLoader(
         name: String,
         resolve: Boolean,
         checkGlobal: Boolean,
-        checkLibraries: Boolean
+        checkLibraries: Boolean,
     ): Class<*> {
         try {
             val result = super.loadClass(name, resolve)
@@ -54,10 +52,10 @@ class SpringSpigotContextClassLoader(
         } catch (ex: ClassNotFoundException) {
         }
 
-        if(checkGlobal) {
-            try{
+        if (checkGlobal) {
+            try {
                 return springSpigotLoader.loadClass(name)
-            }catch(ex: ClassNotFoundException) {
+            } catch (ex: ClassNotFoundException) {
 
             }
         }
