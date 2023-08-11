@@ -141,16 +141,10 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             throw new InvalidPluginException(new FileNotFoundException(file.getPath() + " does not exist"));
         }
 
-        final PluginDescriptionFile description;
-        try {
-            description = getPluginDescription(file);
-        } catch (InvalidDescriptionException ex) {
-            throw new InvalidPluginException(ex);
-        }
 
         final File parentFile = file.getParentFile();
-        final File dataFolder = new File(parentFile, description.getName());
-        @SuppressWarnings("deprecation") final File oldDataFolder = new File(parentFile, description.getRawName());
+        final File dataFolder = new File(parentFile, getName());
+        @SuppressWarnings("deprecation") final File oldDataFolder = new File(parentFile, getDescription().getRawName());
 
         if (dataFolder.equals(oldDataFolder)) {
         } else if (dataFolder.isDirectory() && oldDataFolder.isDirectory()) {
@@ -161,41 +155,7 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
         }
 
 
-        return new SpringSpigotContextClassLoader(file, additional, description, getClassLoader().getParent(), (URLClassLoader) getClassLoader());
+        return new SpringSpigotContextClassLoader(file, additional, getDescription(), getClassLoader().getParent(), (URLClassLoader) getClassLoader());
     }
 
-    public PluginDescriptionFile getPluginDescription(File file) throws InvalidDescriptionException {
-
-        JarFile jar = null;
-        InputStream stream = null;
-
-        try {
-            jar = new JarFile(file);
-            JarEntry entry = jar.getJarEntry("plugin.yml");
-
-            if (entry == null) {
-                throw new InvalidDescriptionException(new FileNotFoundException("Jar does not contain plugin.yml"));
-            }
-
-            stream = jar.getInputStream(entry);
-
-            return new PluginDescriptionFile(stream);
-
-        } catch (IOException ex) {
-            throw new InvalidDescriptionException(ex);
-        } finally {
-            if (jar != null) {
-                try {
-                    jar.close();
-                } catch (IOException e) {
-                }
-            }
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-    }
 }
