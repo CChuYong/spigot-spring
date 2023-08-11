@@ -1,14 +1,23 @@
 package chuyong.springspigot.util
 
 import java.io.InputStream
+import java.lang.reflect.Method
 import java.net.URL
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import chuyong.springspigot.PremainAgent
 
 class CompoundClassLoader : ClassLoader {
     private val classLoaders: ArrayList<ClassLoader>
     private val classCache = ConcurrentHashMap<String, Class<*>>()
+
+    var isLoadedMethod: Method
+    init {
+        isLoadedMethod = ClassLoader.getSystemClassLoader().loadClass("chuyong.springspigot.PremainAgent").getDeclaredMethod("isClassLoaded", String::class.java, ClassLoader::class.java)
+    }
+
+    fun isClassLoaded(name: String, loader: ClassLoader): Boolean {
+        return isLoadedMethod.invoke(null, name, loader) as Boolean
+    }
 
     constructor(vararg loaders: ClassLoader) {
         classLoaders = arrayListOf(*loaders)
@@ -83,7 +92,10 @@ class CompoundClassLoader : ClassLoader {
     fun loadClassSafe(name: String): Class<*> {
         val targetName = name.replace(".", "/")
         val loadedLoader = classLoaders.firstOrNull {
-            PremainAgent.isClassLoaded(targetName, it)
+            isClassLoaded(targetName, it)
+        }
+        loadedLoader?.apply {
+            println("Loaded $name from $this")
         }
         return loadedLoader?.loadClass(name) ?: throw ClassNotFoundException()
     }

@@ -80,8 +80,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
 
 
-   compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
-
+   //compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 }
 
 tasks.getByName<BootJar>("bootJar") {

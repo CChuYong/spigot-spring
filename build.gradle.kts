@@ -20,7 +20,7 @@ repositories {
 }
 
 subprojects {
-    if(name != "bukkit-class-modifier") apply(plugin = "kotlin")
+    if(name != "bukkit-class-modifier" && name != "bukkit-bootstrapper") apply(plugin = "kotlin")
     else apply(plugin = "java")
     apply(plugin = "maven-publish")
     apply(plugin = "com.github.johnrengelman.shadow")

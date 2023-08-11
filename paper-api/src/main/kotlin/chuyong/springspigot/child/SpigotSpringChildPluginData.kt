@@ -2,7 +2,6 @@ package chuyong.springspigot.child
 
 import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.base.Charsets
-import io.papermc.paper.plugin.configuration.PluginMeta
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.PluginDescriptionFile
@@ -22,7 +21,6 @@ data class SpigotSpringChildPluginData(
     val dataFolder: File,
     private val newConfig: FileConfiguration?,
     val configFile: File,
-    val meta: PluginMeta,
 ) {
     var actualConfig = newConfig ?: Unit.let {
         val newConfig = YamlConfiguration.loadConfiguration(configFile)
@@ -69,7 +67,6 @@ data class SpigotSpringChildPluginData(
                 plugin.dataFolder,
                 plugin.config,
                 configFile,
-                JavaPlugin::class.java.getDeclaredMethod("getPluginMeta").invoke(plugin) as PluginMeta
             )
         }
     }
