@@ -59,7 +59,7 @@ kotlin {
 
 dependencies {
     api(project(":core-api"))
-    compileOnly(project(":bukkit-class-modifier"))
+    compileOnly(project(":spigot-class-modifier"))
     // https://mvnrepository.com/artifact/org.ow2.asm/asm
     compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
 

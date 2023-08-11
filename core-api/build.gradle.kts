@@ -15,7 +15,7 @@ kotlin {
 }
 
 dependencies {
-    compileOnly(project(":bukkit-class-modifier"))
+    compileOnly(project(":spigot-class-modifier"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
