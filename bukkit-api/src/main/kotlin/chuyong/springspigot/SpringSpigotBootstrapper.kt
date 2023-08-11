@@ -52,6 +52,10 @@ class SpringSpigotBootstrapper(
         logger.info("§f§lWired ${count} beans completed...")
     }
 
+    fun stop() {
+        onDisable()
+    }
+
     private fun loadSpringSpigot() {
         val watch = StopWatch()
         watch.start()

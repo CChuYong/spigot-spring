@@ -10,6 +10,7 @@ import org.bukkit.plugin.java.PluginClassLoader;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -19,6 +20,8 @@ import java.util.jar.JarFile;
 
 public class SpigotSpringBootstrapper extends JavaPlugin {
     String fileName = "bukkit-api-0.0.2-SNAPSHOT-all.jar";
+    Object mainInstance;
+    Method stopMethod;
 
     @Override
     public void onEnable() {
@@ -52,13 +55,26 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             SpringSpigotContextClassLoader loader = loadPlugin(jarPath, libLoader.getURLs());
             Class<?> k = Class.forName("chuyong.springspigot.SpringSpigotBootstrapper", true, loader);
             Method startMethod = k.getDeclaredMethod("start");
+            stopMethod = k.getDeclaredMethod("stop");
             Constructor cs = k.getConstructor(JavaPlugin.class, URLClassLoader.class, URLClassLoader.class, Object.class);
             Object contextLoader = isPaperAvailable() ? addOnPaper(loader) : addOnSpigot(loader, currentPluginFile);
 
-            Object instance = cs.newInstance(this, loader, getClassLoader(), contextLoader);
-            startMethod.invoke(instance);
+            mainInstance = cs.newInstance(this, loader, getClassLoader(), contextLoader);
+            startMethod.invoke(mainInstance);
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void onDisable() {
+        try {
+            stopMethod.invoke(mainInstance);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+            throw new RuntimeException(e);
         }
 
     }
