@@ -89,7 +89,6 @@ class SpringSpigotBootstrapper(
                     .sendMessage("§f§l[§6SpringSpigot§f§l] Disabling plugin " + plugin.name + " To load from SpringSpigot..")
 
                 PluginUtil.unloadPlugin(plugin)
-               // Bukkit.getPluginManager().disablePlugin(plugin)
                 data.initLoader(selfLoader, springSpigotLoader)
                 if(!data.isEscalated)
                     registerClassLoader(data.classLoader!!)
@@ -105,8 +104,6 @@ class SpringSpigotBootstrapper(
         }
 
         val myClazz = SpringSpigotApplication::class.java.name
-
-        //  val multiClassLoader = CompoundClassLoader( classLoader, customLoader,)
         val multiClassLoader = selfLoader
 
         Bukkit.getConsoleSender()
