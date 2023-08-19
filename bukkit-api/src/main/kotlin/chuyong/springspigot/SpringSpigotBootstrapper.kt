@@ -16,10 +16,8 @@ import org.slf4j.Logger
 import org.springframework.boot.Banner
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.boot.web.reactive.context.AnnotationConfigReactiveWebServerApplicationContext
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
-import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.core.env.PropertiesPropertySource
 import org.springframework.core.io.DefaultResourceLoader
@@ -148,7 +146,6 @@ class SpringSpigotBootstrapper(
                 web(WebApplicationType.REACTIVE)
                 initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
                     val propertySources = it.environment.propertySources
-                    println(it.environment::class.java.name)
                     propertySources.addLast(BukkitConfigPropertySource(config))
                     propertySources.addLast(PropertiesPropertySource("main-yaml", getPrimaryApplicationProperties()))
 
@@ -156,16 +153,13 @@ class SpringSpigotBootstrapper(
                     props["spigot.plugin"] = name
                     propertySources.addLast(PropertiesPropertySource("spring-bukkit", props))
 
-                    it as AnnotationConfigReactiveWebServerApplicationContext
+                    it as GenericApplicationContext
                     it.registerBean(SpigotSpringChildPluginData::class.java, Supplier { spigotSpring })
-                    println(it::class.java.name)
                     mainContext = it
                 })
 
                 val application = build()
-                println("WAT TYPE ${application.webApplicationType}")
-
-                parentContext = application.run() as AnnotationConfigReactiveWebServerApplicationContext
+                parentContext = application.run() as GenericApplicationContext
             }
             val initializedPlugin = parentContext.getBean(Plugin::class.java)
             JavaPlugin::class.java.getDeclaredField("isEnabled").apply {
