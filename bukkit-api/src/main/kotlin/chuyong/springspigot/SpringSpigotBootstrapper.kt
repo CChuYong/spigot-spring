@@ -12,13 +12,15 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.bukkit.Bukkit
 import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.plugin.java.PluginClassLoader
 import org.slf4j.Logger
 import org.springframework.boot.Banner
+import org.springframework.boot.WebApplicationType
 import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.web.reactive.context.AnnotationConfigReactiveWebServerApplicationContext
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import org.springframework.context.support.GenericApplicationContext
 import org.springframework.core.env.PropertiesPropertySource
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.core.io.FileSystemResource
@@ -37,11 +39,11 @@ class SpringSpigotBootstrapper(
     val springSpigotLoader: URLClassLoader,
     val contextLoader: Any,
 ) : Plugin by plugin {
-    lateinit var parentContext: AnnotationConfigApplicationContext
+    lateinit var parentContext: GenericApplicationContext
     private val childContexts = mutableListOf<ConfigurableApplicationContext>()
 
     companion object {
-        lateinit var mainContext: AnnotationConfigApplicationContext
+        lateinit var mainContext: GenericApplicationContext
     }
 
     fun start() {
@@ -143,8 +145,10 @@ class SpringSpigotBootstrapper(
                 twoClazz, *escalatedClazzes.toTypedArray()
             ).apply {
                 bannerMode(Banner.Mode.OFF)
+                web(WebApplicationType.REACTIVE)
                 initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
                     val propertySources = it.environment.propertySources
+                    println(it.environment::class.java.name)
                     propertySources.addLast(BukkitConfigPropertySource(config))
                     propertySources.addLast(PropertiesPropertySource("main-yaml", getPrimaryApplicationProperties()))
 
@@ -152,12 +156,16 @@ class SpringSpigotBootstrapper(
                     props["spigot.plugin"] = name
                     propertySources.addLast(PropertiesPropertySource("spring-bukkit", props))
 
-                    it as AnnotationConfigApplicationContext
+                    it as AnnotationConfigReactiveWebServerApplicationContext
                     it.registerBean(SpigotSpringChildPluginData::class.java, Supplier { spigotSpring })
+                    println(it::class.java.name)
                     mainContext = it
                 })
 
-                parentContext = run() as AnnotationConfigApplicationContext
+                val application = build()
+                println("WAT TYPE ${application.webApplicationType}")
+
+                parentContext = application.run() as AnnotationConfigReactiveWebServerApplicationContext
             }
             val initializedPlugin = parentContext.getBean(Plugin::class.java)
             JavaPlugin::class.java.getDeclaredField("isEnabled").apply {
