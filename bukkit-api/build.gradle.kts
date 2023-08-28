@@ -47,7 +47,7 @@ publishing {
 repositories {
     mavenLocal()
     mavenCentral()
-    // maven("https://maven.hqservice.kr/repository/maven-public/")
+    maven("https://maven.hqservice.kr/repository/maven-public/")
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://oss.sonatype.org/content/groups/public/")
     maven("https://jitpack.io")
@@ -61,7 +61,6 @@ kotlin {
 dependencies {
     api(project(":core-api"))
     compileOnly(project(":spigot-class-modifier"))
-    // https://mvnrepository.com/artifact/org.ow2.asm/asm
     compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
 
     implementation("org.springframework.boot:spring-boot-starter:3.1.1"){
@@ -91,9 +90,6 @@ dependencies {
     compileOnly("com.github.f4b6a3:ulid-creator:5.2.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.1.1")
-
-
-    //compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
 }
 
