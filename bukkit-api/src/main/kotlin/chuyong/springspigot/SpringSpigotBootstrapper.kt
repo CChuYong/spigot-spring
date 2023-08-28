@@ -143,7 +143,7 @@ class SpringSpigotBootstrapper(
                 twoClazz, *escalatedClazzes.toTypedArray()
             ).apply {
                 bannerMode(Banner.Mode.OFF)
-                web(WebApplicationType.REACTIVE)
+                web(WebApplicationType.NONE)
                 initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
                     val propertySources = it.environment.propertySources
                     propertySources.addLast(BukkitConfigPropertySource(config))
@@ -180,6 +180,7 @@ class SpringSpigotBootstrapper(
                     logger.info("Loading Plugin ${data.description.name}")
                     val context = applicationBuilder.child(data.mainClass)
                         .bannerMode(Banner.Mode.OFF)
+                        .web(WebApplicationType.NONE)
                         .initializers(SpigotSpringChildInitializer(data))
                         .resourceLoader(DefaultResourceLoader(data.classLoader))
                         .initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
