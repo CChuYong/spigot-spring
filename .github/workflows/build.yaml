@@ -2,10 +2,6 @@ name: Build Project and upload
 on:
   push:
     branches: [ 'main' ]
-    paths:
-      - 'src/**'
-      - 'build.gradle.kts'
-
 concurrency:
   group: build
 
