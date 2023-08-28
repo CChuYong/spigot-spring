@@ -3,10 +3,11 @@ plugins {
     kotlin("jvm") version kotlinVersion
     `maven-publish`
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("java")
 }
 
 val isRelease = System.getProperty("release") != null
-val baseVersion = "0.0.1"
+val baseVersion = "0.0.2"
 group = "kr.chuyong"
 version = "${baseVersion}${if (isRelease) "-RELEASE" else "-SNAPSHOT"}"
 description = "Spring Boot Spigot Starter"
@@ -19,7 +20,8 @@ repositories {
 }
 
 subprojects {
-    apply(plugin = "kotlin")
+    if (name != "spigot-class-modifier" && name != "bukkit-bootstrapper") apply(plugin = "kotlin")
+    else apply(plugin = "java")
     apply(plugin = "maven-publish")
     apply(plugin = "com.github.johnrengelman.shadow")
     this.group = parentGroup
@@ -83,6 +85,13 @@ task("publishAll") {
 
 tasks.register("printVersion") {
     doLast {
+        println(baseVersion)
+    }
+}
+
+tasks.register("printMeta") {
+    doLast {
+        println(baseVersion)
         val version = if(isRelease) baseVersion else version
         println("$version")
     }

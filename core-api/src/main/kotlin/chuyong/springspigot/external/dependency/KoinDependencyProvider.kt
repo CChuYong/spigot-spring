@@ -10,14 +10,13 @@ import org.springframework.stereotype.Component
 import kotlin.reflect.KClass
 
 @Component("koin-provider")
-@ConditionalOnClass(KoinApplication::class)
+@ConditionalOnClass(KoinApplication::class, Scope::class)
 class KoinDependencyProvider : ExternalDependencyProvider {
     @OptIn(KoinInternalApi::class)
-    private val scope: Scope?
-        get() {
-            val koinApplication = getKoinApplicationOrNull()
-            return koinApplication?.koin?.scopeRegistry?.rootScope
-        }
+    private val scope = run {
+        val koinApplication = getKoinApplicationOrNull()
+        koinApplication?.koin?.scopeRegistry?.rootScope
+    }
 
     override fun <T : Any> get(clazz: Class<T>): T {
         val mainScope = scope ?: throw RuntimeException("Koin Not Initialized")

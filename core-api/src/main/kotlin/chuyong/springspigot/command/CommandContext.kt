@@ -1,5 +1,6 @@
 package chuyong.springspigot.command
-abstract class CommandContext{
+
+abstract class CommandContext {
     companion object {
         private val COMMAND_CONTEXT = ThreadLocal<CommandContext>()
 
