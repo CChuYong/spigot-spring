@@ -1,18 +1,18 @@
 package chuyong.springspigot.web
 
-import io.netty.channel.EventLoopGroup
-import io.netty.channel.epoll.Epoll
 import org.slf4j.Logger
-import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory
-import org.springframework.boot.web.embedded.netty.NettyServerCustomizer
-import org.springframework.boot.web.reactive.server.ReactiveWebServerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import reactor.netty.http.server.HttpServer
+import org.springframework.web.reactive.HandlerMapping
+import org.springframework.web.reactive.config.DelegatingWebFluxConfiguration
+import org.springframework.web.reactive.function.server.*
+import org.springframework.web.reactive.function.server.support.HandlerFunctionAdapter
+import org.springframework.web.reactive.function.server.support.RouterFunctionMapping
+
 
 @Configuration
 class SpigotWebFluxConfig(
-    private val logger: Logger,
+
 ) {
 //    @Bean
 //    fun reactiveWebServerFactory(): ReactiveWebServerFactory {
@@ -34,4 +34,5 @@ class SpigotWebFluxConfig(
 //        return factory
 //    }
 //}
+
 }

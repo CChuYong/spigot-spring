@@ -5,6 +5,7 @@ import chuyong.springspigot.command.CommandRegistry
 import chuyong.springspigot.command.annotation.CommandAdvice
 import chuyong.springspigot.command.annotation.CommandController
 import chuyong.springspigot.event.BukkitEventService
+import io.netty.channel.nio.NioEventLoop
 import org.bukkit.Bukkit
 import org.bukkit.event.Listener
 import org.bukkit.plugin.Plugin
@@ -12,6 +13,10 @@ import org.bukkit.plugin.SimplePluginManager
 import org.slf4j.Logger
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.DispatcherHandler
+import org.springframework.web.reactive.HandlerMapping
+import org.springframework.web.reactive.function.server.RouterFunction
+import org.springframework.web.reactive.function.server.support.RouterFunctionMapping
 
 @Component
 class SpringSpigotChildPostInitializer(
@@ -21,6 +26,7 @@ class SpringSpigotChildPostInitializer(
     fun onPostInitialize(applicationContext: ApplicationContext) {
         val parentContext = SpringSpigotBootstrapper.mainContext
         val commandHandler = parentContext.getBean(CommandRegistry::class.java)
+
 
 
         val commandAdvices = applicationContext.getBeansWithAnnotation(
@@ -51,6 +57,7 @@ class SpringSpigotChildPostInitializer(
             springSpigotPluginRegistry.registerPlugin(plugin as SpringSpigotChildPlugin)
             overwritePlugin(plugin)
         }
+
 
         val eventService = parentContext.getBean(BukkitEventService::class.java)
         beans.forEach { listener ->

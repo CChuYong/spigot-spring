@@ -1,6 +1,7 @@
 package chuyong.springspigot.child
 
 import com.google.common.base.Charsets
+import io.papermc.paper.plugin.configuration.PluginMeta
 import jakarta.annotation.PostConstruct
 import org.bukkit.Bukkit
 import org.bukkit.Server
@@ -52,6 +53,10 @@ open class SpringSpigotChildPlugin : Plugin {
     }
 
     override fun getDescription(): PluginDescriptionFile {
+        return data.description
+    }
+
+    override fun getPluginMeta(): PluginMeta {
         return data.description
     }
 
