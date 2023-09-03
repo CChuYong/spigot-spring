@@ -61,7 +61,8 @@ kotlin {
 dependencies {
     api(project(":core-api"))
     compileOnly(project(":spigot-class-modifier"))
-    compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
+    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
+    //compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
 
     implementation("org.springframework.boot:spring-boot-starter:3.1.1"){
         exclude(module = "spring-boot-starter-logging")
