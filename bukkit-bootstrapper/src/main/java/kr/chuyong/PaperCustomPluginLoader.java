@@ -67,7 +67,13 @@ public class PaperCustomPluginLoader implements ConfiguredPluginClassLoader {
 
     @Override
     public void close() {
-
+        group.remove(this);
+        PaperClassLoaderStorage.instance().unregisterClassloader(this);
+        try{
+            mainClassLoader.close();
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
     }
 
     public void addNewLoader(Function<String, Class<?>> classLoader) {

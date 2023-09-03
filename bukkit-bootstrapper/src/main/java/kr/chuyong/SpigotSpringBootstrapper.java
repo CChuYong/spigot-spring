@@ -22,6 +22,7 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
     String fileName = "bukkit-api-0.0.2-SNAPSHOT-all.jar";
     Object mainInstance;
     Method stopMethod;
+    Object defaultLoader;
 
     @Override
     public void onEnable() {
@@ -58,6 +59,7 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             stopMethod = k.getDeclaredMethod("stop");
             Constructor cs = k.getConstructor(JavaPlugin.class, URLClassLoader.class, URLClassLoader.class, Object.class);
             Object contextLoader = isPaperAvailable() ? addOnPaper(loader) : addOnSpigot(loader, currentPluginFile);
+            defaultLoader = contextLoader;
 
             mainInstance = cs.newInstance(this, loader, getClassLoader(), contextLoader);
             startMethod.invoke(mainInstance);
@@ -77,6 +79,9 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             throw new RuntimeException(e);
         }
 
+        if(defaultLoader instanceof PaperCustomPluginLoader loader) {
+            loader.close();
+        }
     }
 
     private Object addOnPaper(SpringSpigotContextClassLoader mainLoader) {
