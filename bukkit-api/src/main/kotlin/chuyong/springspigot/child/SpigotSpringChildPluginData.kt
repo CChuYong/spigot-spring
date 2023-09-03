@@ -66,7 +66,7 @@ data class SpigotSpringChildPluginData(
         requireNotNull(filename) { "Filename cannot be null" }
 
         return try {
-            val url: URL = javaClass.classLoader.getResource(filename) ?: return null
+            val url: URL = classLoader?.getResource(filename) ?: return null
             val connection = url.openConnection()
             connection.useCaches = false
             connection.getInputStream()

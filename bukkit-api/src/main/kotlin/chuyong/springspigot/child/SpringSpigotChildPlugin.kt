@@ -60,7 +60,6 @@ open class SpringSpigotChildPlugin : Plugin {
         return data.description
     }
 
-    @Bean
     override fun getConfig(): FileConfiguration {
         if (data.actualConfig == null) {
             reloadConfig()
@@ -91,7 +90,7 @@ open class SpringSpigotChildPlugin : Plugin {
 
         val resourcePath = tempResourcePath.replace('\\', '/')
         val `in` = getResource(resourcePath)
-            ?: throw IllegalArgumentException("The embedded resource '$resourcePath' cannot be found in $${data.file}")
+            ?: throw IllegalArgumentException("The embedded resource '$resourcePath' cannot be found in ${data.file}")
 
         val outFile = File(dataFolder, resourcePath)
         val lastIndex: Int = resourcePath.lastIndexOf('/')
@@ -125,16 +124,16 @@ open class SpringSpigotChildPlugin : Plugin {
     override fun reloadConfig() {
         data.actualConfig = YamlConfiguration.loadConfiguration(data.configFile)
 
-        val defConfigStream = getResource("config.yml") ?: return
-
-        data.actualConfig!!.setDefaults(
-            YamlConfiguration.loadConfiguration(
-                InputStreamReader(
-                    defConfigStream,
-                    Charsets.UTF_8
-                )
-            )
-        )
+//        val defConfigStream = getResource("config.yml") ?: return
+//
+//        data.actualConfig!!.setDefaults(
+//            YamlConfiguration.loadConfiguration(
+//                InputStreamReader(
+//                    defConfigStream,
+//                    Charsets.UTF_8
+//                )
+//            )
+//        )
     }
 
     override fun getPluginLoader(): PluginLoader {

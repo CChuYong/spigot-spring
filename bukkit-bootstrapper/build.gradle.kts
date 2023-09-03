@@ -36,3 +36,22 @@ tasks.getByName<ProcessResources>("processResources") {
         expand(props)
     }
 }
+
+publishing {
+    publications.create<MavenPublication>("maven") {
+        artifactId = "spigot-spring-${project.name}"
+        //from(components["java"])
+        artifact(tasks["jar"])
+    }
+
+    repositories {
+        maven {
+            val urlPath = if (!version.toString().contains("SNAPSHOT"))
+                uri("https://nexus.chuyong.kr/repository/maven-releases/")
+            else
+                uri("https://nexus.chuyong.kr/repository/maven-snapshots/")
+            name = "CChuYong"
+            url = uri(urlPath)
+        }
+    }
+}
