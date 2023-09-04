@@ -6,11 +6,11 @@ import chuyong.springspigot.command.annotation.CommandMapping
 import org.bukkit.command.CommandSender
 
 @CommandController
-@CommandMapping("ss", console = true, op = true)
+@CommandMapping("ss", child = "plugins", console = true, op = true)
 class SpigotSpringCommand(
     private val pluginRegistry: SpringSpigotPluginRegistry,
 ) {
-    @CommandMapping("plugins", console = true)
+    @CommandMapping("list", console = true)
     fun onPluginListCommand(sender: CommandSender) {
         val plugins = pluginRegistry.getPluginMetas()
         plugins.joinToString("§7, ") {
@@ -22,6 +22,30 @@ class SpigotSpringCommand(
         }.let {
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugins: $it")
         }
+    }
+
+    @CommandMapping("unload", minArgs = 1, maxArgs = 1, console = true)
+    fun unloadPlugin(sender: CommandSender, args: Array<String>) {
+        val pluginMeta = pluginRegistry.getPluginMeta(args[0])
+        if(pluginMeta == null) {
+            sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin not found.")
+            return
+        }
+
+        try {
+            val plugin = pluginRegistry.getPlugin(args[0])
+            if(plugin != null) {
+                pluginRegistry.unloadPlugin(plugin)
+            } else {
+                pluginRegistry.unloadPluginData(pluginMeta)
+            }
+
+            sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${pluginMeta.description.name} successfully unloaded.")
+        }catch(e: Exception) {
+            e.printStackTrace()
+            sender.sendMessage("§7[§bSpringSpigot§7] §fAn error occured while unloading plugin.")
+        }
+
     }
 
     @CommandMapping("disable", minArgs = 1, maxArgs = 1, console = true)
@@ -64,6 +88,40 @@ class SpigotSpringCommand(
         try {
             pluginRegistry.enablePlugin(pluginMeta)
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${pluginMeta.description.name} successfully enabled.")
+        }catch(e: Exception) {
+            e.printStackTrace()
+            sender.sendMessage("§7[§bSpringSpigot§7] §fAn error occured while enabling plugin.")
+        }
+
+    }
+
+    @CommandMapping("reload", console = true,  minArgs = 1, maxArgs = 1)
+    fun reloadPlugin(sender: CommandSender, args: Array<String>) {
+        val pluginMeta = pluginRegistry.getPluginMeta(args[0])
+        if(pluginMeta == null) {
+            sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin not found.")
+            return
+        }
+
+        if (!pluginMeta.enabled) {
+            sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin not enabled.")
+            return
+        }
+
+        try {
+            val plugin = pluginRegistry.getPlugin(args[0])
+            if(plugin != null) {
+                pluginRegistry.unloadPlugin(plugin)
+            } else {
+                pluginRegistry.unloadPluginData(pluginMeta)
+            }
+            System.gc()
+
+            val newMeta = pluginMeta.rebuildNew()
+            pluginRegistry.loadPlugin(newMeta)
+
+
+            sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${pluginMeta.description.name} successfully reloaded.")
         }catch(e: Exception) {
             e.printStackTrace()
             sender.sendMessage("§7[§bSpringSpigot§7] §fAn error occured while enabling plugin.")

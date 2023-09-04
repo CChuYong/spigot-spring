@@ -10,13 +10,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class PaperCustomPluginLoader implements ConfiguredPluginClassLoader {
     private final JavaPlugin plugin;
     private final SpringSpigotContextClassLoader mainClassLoader;
-    private final List<Function<String, Class<?>>> childClassLoaders = new ArrayList<>();
+    private final Map<String, Function<String, Class<?>>> childClassLoaders = new HashMap<>();
     private PluginClassLoaderGroup group;
 
     public PaperCustomPluginLoader(JavaPlugin plugin, SpringSpigotContextClassLoader mainClassLoader) {
@@ -42,7 +44,7 @@ public class PaperCustomPluginLoader implements ConfiguredPluginClassLoader {
         } catch (Exception exe) {
 
         }
-        for (Function<String, Class<?>> loader : childClassLoaders) {
+        for (Function<String, Class<?>> loader : childClassLoaders.values()) {
             Class<?> foundClass = loader.apply(name);
             if (foundClass != null) return foundClass;
         }
@@ -76,7 +78,11 @@ public class PaperCustomPluginLoader implements ConfiguredPluginClassLoader {
         }
     }
 
-    public void addNewLoader(Function<String, Class<?>> classLoader) {
-        childClassLoaders.add(classLoader);
+    public void addNewLoader(String pluginName, Function<String, Class<?>> classLoader) {
+        childClassLoaders.put(pluginName, classLoader);
+    }
+
+    public void removeLoader(String pluginName){
+        childClassLoaders.remove(pluginName);
     }
 }

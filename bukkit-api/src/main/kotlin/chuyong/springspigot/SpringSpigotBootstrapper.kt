@@ -38,9 +38,40 @@ class SpringSpigotBootstrapper(
     object Unsafe {
         lateinit var mainContext: GenericApplicationContext
         lateinit var pluginRegistry: SpringSpigotPluginRegistry
+        lateinit var bootstrapContextLoader: Any
+        lateinit var parentClassLoader: URLClassLoader
+        lateinit var selfClassLoader: URLClassLoader
+        private val loaderMap = mutableMapOf<SpigotSpringChildPluginData, java.util.function.Function<String, Class<*>?>>()
+
+
+        fun registerClassLoader(pluginData: SpigotSpringChildPluginData) {
+            val fn: java.util.function.Function<String, Class<*>?> = java.util.function.Function { name ->
+                try {
+                    pluginData.classLoader!!.readSelf(name, true)
+                } catch (e: ClassNotFoundException) {
+                    null
+                }
+            }
+
+            loaderMap[pluginData] = fn
+            bootstrapContextLoader::class.java.getDeclaredMethod("addNewLoader", String::class.java, java.util.function.Function::class.java)
+                .apply {
+                    invoke(bootstrapContextLoader, pluginData.description.name, fn)
+                }
+        }
+
+        fun unRegisterClassLoader(pluginData: SpigotSpringChildPluginData) {
+            bootstrapContextLoader::class.java.getDeclaredMethod("removeLoader", String::class.java)
+                .apply {
+                    invoke(bootstrapContextLoader, pluginData.description.name)
+                }
+        }
     }
 
     fun start() {
+        Unsafe.parentClassLoader = springSpigotLoader
+        Unsafe.selfClassLoader = selfLoader
+        Unsafe.bootstrapContextLoader = contextLoader
         server.scheduler.runTaskLater(this, Runnable {
             loadSpringSpigot()
         }, 0L)
@@ -85,7 +116,7 @@ class SpringSpigotBootstrapper(
                 PluginUtil.unloadPlugin(plugin)
                 data.initLoader(selfLoader, springSpigotLoader)
                 if(!data.isEscalated)
-                    registerClassLoader(data.classLoader!!)
+                    Unsafe.registerClassLoader(data)
                 else {
                     val tmp = data.classLoader
                     data.classLoader = null
@@ -191,19 +222,5 @@ class SpringSpigotBootstrapper(
         return YamlPropertiesFactory.loadYamlIntoProperties(configurationFile)!!
     }
 
-    private fun registerClassLoader(classLoader: SpringSpigotContextClassLoader) {
-        val fn: java.util.function.Function<String, Class<*>?> = java.util.function.Function { name ->
-            try {
-                classLoader.readSelf(name, true)
-            } catch (e: ClassNotFoundException) {
-                null
-            }
-        }
-
-        contextLoader::class.java.getDeclaredMethod("addNewLoader", java.util.function.Function::class.java)
-            .apply {
-                invoke(contextLoader, fn)
-            }
-    }
 
 }

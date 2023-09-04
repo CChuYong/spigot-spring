@@ -104,8 +104,15 @@ class SpringSpigotPluginRegistry(
 
     fun unloadPlugin(plugin: SpringSpigotChildPlugin) {
         pluginMetas.remove(plugin.name)
+        SpringSpigotBootstrapper.Unsafe.unRegisterClassLoader(plugin.data)
         disablePlugin(plugin)
-        //TODO: UNLOAD ClassLoader
+        plugin.data.close()
+    }
+
+    fun unloadPluginData(pluginData: SpigotSpringChildPluginData) {
+        pluginMetas.remove(pluginData.description.name)
+        SpringSpigotBootstrapper.Unsafe.unRegisterClassLoader(pluginData)
+        pluginData.close()
     }
 
     fun unloadPlugins() {

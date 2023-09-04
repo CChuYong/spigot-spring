@@ -129,7 +129,10 @@ class SpringSpigotContextClassLoader(
 
     @Throws(IOException::class)
     override fun close() {
-        super.close()
-        jar.close()
+        try{
+            super.close()
+        }finally {
+            jar.close()
+        }
     }
 }

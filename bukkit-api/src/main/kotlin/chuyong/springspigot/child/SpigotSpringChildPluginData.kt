@@ -1,6 +1,7 @@
 package chuyong.springspigot.child
 
 import chuyong.springspigot.EnableEscalatedSpringSpigotSupport
+import chuyong.springspigot.SpringSpigotBootstrapper
 import chuyong.springspigot.util.PluginUtil
 import chuyong.springspigot.util.SpringSpigotContextClassLoader
 import chuyong.springspigot.util.YamlPropertiesFactory
@@ -35,6 +36,15 @@ data class SpigotSpringChildPluginData(
         val defConfigStream = getResource("config.yml") ?: return@let null
         newConfig.setDefaults(YamlConfiguration.loadConfiguration(InputStreamReader(defConfigStream, Charsets.UTF_8)))
         return@let newConfig
+    }
+
+    fun rebuildNew(): SpigotSpringChildPluginData {
+        return copy(
+
+        ).apply {
+            classLoader = null
+            initLoader(SpringSpigotBootstrapper.Unsafe.selfClassLoader, SpringSpigotBootstrapper.Unsafe.parentClassLoader)
+        }
     }
 
     fun initLoader(parent: ClassLoader, springSpigotLoader: ClassLoader) {
@@ -73,6 +83,10 @@ data class SpigotSpringChildPluginData(
         } catch (ex: IOException) {
             null
         }
+    }
+
+    fun close() {
+        classLoader?.close()
     }
 
     companion object {
