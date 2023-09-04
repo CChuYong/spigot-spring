@@ -11,7 +11,7 @@ import java.lang.reflect.Method
 import java.util.*
 
 class BukkitCommandImpl(
-    baseLabel: String,
+    val baseLabel: String,
     private val baseConfig: SuperCommandConfig? = null,
 ) : BukkitCommand(baseLabel) {
     private val primaryContainer = SubCommandContainer(null, label, 0)

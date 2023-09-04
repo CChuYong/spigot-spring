@@ -1,6 +1,5 @@
 package chuyong.springspigot.child
 
-import com.google.common.base.Charsets
 import io.papermc.paper.plugin.configuration.PluginMeta
 import jakarta.annotation.PostConstruct
 import org.bukkit.Bukkit
@@ -17,9 +16,13 @@ import org.bukkit.plugin.PluginLoader
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
+import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
+import org.springframework.web.server.adapter.WebHttpHandlerBuilder.applicationContext
 import java.io.*
 import java.util.logging.Level
 import java.util.logging.Logger
+
 
 open class SpringSpigotChildPlugin : Plugin {
     @Autowired

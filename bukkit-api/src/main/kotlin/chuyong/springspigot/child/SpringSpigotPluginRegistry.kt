@@ -19,7 +19,10 @@ import org.springframework.boot.WebApplicationType
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextInitializer
+import org.springframework.context.ApplicationListener
 import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.core.env.PropertiesPropertySource
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.stereotype.Component
@@ -29,8 +32,11 @@ import java.util.concurrent.ConcurrentHashMap
 @Component
 class SpringSpigotPluginRegistry(
     private val logger: Logger,
+    private val parentBuilder: SpringApplicationBuilder,
+    private val commandRegistry: CommandRegistry,
 ) {
     private val plugins = ConcurrentHashMap<String, SpringSpigotChildPlugin>()
+    private val pluginMetas = ConcurrentHashMap<String, SpigotSpringChildPluginData>()
 
     fun getPlugin(plugin: String): SpringSpigotChildPlugin? {
         return plugins[plugin]
@@ -40,30 +46,17 @@ class SpringSpigotPluginRegistry(
         return plugins.values.toList()
     }
 
-    fun loadPlugin(pluginData: SpigotSpringChildPluginData, parentBuilder: SpringApplicationBuilder): ConfigurableApplicationContext? {
+    fun getPluginMetas(): List<SpigotSpringChildPluginData> {
+        return pluginMetas.values.toList()
+    }
+
+    fun getPluginMeta(pluginName: String): SpigotSpringChildPluginData? = pluginMetas[pluginName]
+
+    fun loadPlugin(pluginData: SpigotSpringChildPluginData): ConfigurableApplicationContext? {
         try {
             logger.info("Loading Plugin ${pluginData.description.name}")
-            val context = parentBuilder.child(pluginData.mainClass)
-                .bannerMode(Banner.Mode.OFF)
-                .web(WebApplicationType.NONE)
-                .initializers(SpigotSpringChildInitializer(pluginData))
-                .resourceLoader(DefaultResourceLoader(pluginData.classLoader))
-                .initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
-                    pluginData.getContextApplicationProperties()?.apply {
-                        logger.info("Found application.yml for plugin ${pluginData.description.name}. Overriding default properties...")
-                        val propertySources = it.environment.propertySources
-                        propertySources.addLast(
-                            PropertiesPropertySource(
-                                "plugin-yaml",
-                                this,
-                            )
-                        )
-                    }
-                })
-                .run()
-            onPostInitialize(context)
-            logger.info("Loaded Plugin ${pluginData.description.name}")
-            return context
+            pluginMetas[pluginData.description.name] = pluginData
+            return enablePlugin(pluginData)
         } catch (e: Throwable) {
             logger.info("Error while loading Plugin ${pluginData.description.name}")
             e.printStackTrace()
@@ -71,12 +64,48 @@ class SpringSpigotPluginRegistry(
         }
     }
 
-    fun unloadPlugin(plugin: SpringSpigotChildPlugin) {
+    fun enablePlugin(pluginData: SpigotSpringChildPluginData): ConfigurableApplicationContext? {
+        val context = parentBuilder.child(pluginData.mainClass)
+            .bannerMode(Banner.Mode.OFF)
+            .web(WebApplicationType.NONE)
+            .initializers(SpigotSpringChildInitializer(pluginData))
+            .resourceLoader(DefaultResourceLoader(pluginData.classLoader))
+            .initializers(ApplicationContextInitializer<ConfigurableApplicationContext> {
+                pluginData.getContextApplicationProperties()?.apply {
+                    logger.info("Found application.yml for plugin ${pluginData.description.name}. Overriding default properties...")
+                    val propertySources = it.environment.propertySources
+                    propertySources.addLast(
+                        PropertiesPropertySource(
+                            "plugin-yaml",
+                            this,
+                        )
+                    )
+                }
+            })
+            .listeners(ApplicationListener<ContextRefreshedEvent> { event ->
+                onPostInitialize(event.applicationContext)
+            })
+            .run()
+        logger.info("Loaded Plugin ${pluginData.description.name}")
+        return context
+    }
+
+    fun disablePlugin(plugin: SpringSpigotChildPlugin) {
+        plugin.data.enabled = false
         plugins.remove(plugin.name)
+
+        commandRegistry.unregisterCommands(plugin.name)
+
         val context = plugin.context
         if(context is ConfigurableApplicationContext) {
             context.close()
         }
+    }
+
+    fun unloadPlugin(plugin: SpringSpigotChildPlugin) {
+        pluginMetas.remove(plugin.name)
+        disablePlugin(plugin)
+        //TODO: UNLOAD ClassLoader
     }
 
     fun unloadPlugins() {
@@ -128,13 +157,13 @@ class SpringSpigotPluginRegistry(
 
     fun onPostInitialize(applicationContext: ApplicationContext) {
         val parentContext = SpringSpigotBootstrapper.Unsafe.mainContext
-        val commandHandler = parentContext.getBean(CommandRegistry::class.java)
+        val plugin = applicationContext.getBean(Plugin::class.java)
 
         val commandAdvices = applicationContext.getBeansWithAnnotation(
             CommandAdvice::class.java
         )
         commandAdvices.forEach { (_, beanObject) ->
-            commandHandler.registerAdvices(
+            commandRegistry.registerAdvices(
                 beanObject
             )
         }
@@ -142,8 +171,9 @@ class SpringSpigotPluginRegistry(
             CommandController::class.java
         )
         commandControllers.forEach { (_, beanObject) ->
-            commandHandler.registerCommands(
-                beanObject
+            commandRegistry.registerCommands(
+                beanObject,
+                pluginName = plugin.name,
             )
         }
 
@@ -151,11 +181,12 @@ class SpringSpigotPluginRegistry(
             Listener::class.java
         ).values
 
-        val plugin = applicationContext.getBean(Plugin::class.java)
 
-        if (applicationContext != parentContext) {
+
+        if (applicationContext != parentContext && plugin is SpringSpigotChildPlugin) {
             logger.info("Registering events for plugin ${plugin.name}...")
-            registerPlugin(plugin as SpringSpigotChildPlugin)
+            plugin.data.enabled = true
+            registerPlugin(plugin)
             overwritePlugin(plugin)
         }
 

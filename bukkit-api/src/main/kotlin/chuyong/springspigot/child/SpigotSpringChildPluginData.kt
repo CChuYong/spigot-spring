@@ -82,7 +82,7 @@ data class SpigotSpringChildPluginData(
                 isAccessible = true
             }.get(plugin) as File
             return SpigotSpringChildPluginData(
-                true,
+                false,
                 file,
                 plugin.description,
                 plugin.dataFolder,

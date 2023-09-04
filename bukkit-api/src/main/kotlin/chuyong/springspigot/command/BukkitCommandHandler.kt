@@ -1,5 +1,6 @@
 package chuyong.springspigot.command
 
+import chuyong.springspigot.child.SpigotSpringChildPluginData
 import chuyong.springspigot.command.annotation.CommandExceptionHandler
 import chuyong.springspigot.command.annotation.CommandMapping
 import chuyong.springspigot.command.data.CommandConfig
@@ -22,6 +23,7 @@ class BukkitCommandHandler(
     private val schedulerService: SchedulerService,
 ) : CommandRegistry {
     private val mainCMD = HashMap<String, BukkitCommandImpl>()
+    private val pluginCommandMap = HashMap<String, HashSet<BukkitCommandImpl>>()
 
     override fun registerAdvices(beanObject: Any) {
         val commandClazz = AopUtils.getTargetClass(beanObject)
@@ -41,12 +43,14 @@ class BukkitCommandHandler(
 
     }
 
-    override fun registerCommands(beanObject: Any) {
+    override fun registerCommands(beanObject: Any, pluginName: String) {
         val commandClazz = AopUtils.getTargetClass(beanObject)
         var baseConfig: CommandMapping? = null
         if (commandClazz.isAnnotationPresent(CommandMapping::class.java)) {
             baseConfig = commandClazz.getAnnotation(CommandMapping::class.java)
-            registerParentCommand(baseConfig)
+            registerParentCommand(baseConfig).apply {
+                pluginCommandMap.computeIfAbsent(pluginName) { HashSet() }.add(this)
+            }
         }
         for (method in ReflectionUtils.getAllDeclaredMethods(commandClazz)) {
             val commandMapping = method.getAnnotation(CommandMapping::class.java)
@@ -59,7 +63,9 @@ class BukkitCommandHandler(
                         CommandConfig.fromAnnotation(commandMapping),
                         method,
                         beanObject
-                    )
+                    ).apply {
+                        pluginCommandMap.computeIfAbsent(pluginName) { HashSet() }.add(this)
+                    }
                 } else {
                     //class parent가 있을때
                     registerChildCommands(
@@ -74,6 +80,16 @@ class BukkitCommandHandler(
         }
         schedulerService.scheduleSyncDelayedTask {
             Bukkit.getServer()::class.java.getMethod("syncCommands").invoke(Bukkit.getServer())
+        }
+    }
+
+    override fun unregisterCommands(pluginName: String) {
+        val bukkitCommandMap = Bukkit.getServer().javaClass.getDeclaredField("commandMap")
+        bukkitCommandMap.isAccessible = true
+        val commandMap = bukkitCommandMap[Bukkit.getServer()] as CommandMap
+        pluginCommandMap[pluginName]?.forEach {
+            mainCMD.remove(it.baseLabel)
+            it.unregister(commandMap)
         }
     }
 

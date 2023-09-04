@@ -148,6 +148,7 @@ class SpringSpigotBootstrapper(
 
                     it as GenericApplicationContext
                     it.registerBean(SpigotSpringChildPluginData::class.java, Supplier { spigotSpring })
+                    it.registerBean(SpringApplicationBuilder::class.java, Supplier { this })
                     Unsafe.mainContext = it
                 })
 
@@ -169,7 +170,7 @@ class SpringSpigotBootstrapper(
 
             val plugins = normalPlugins.mapNotNull { plugin ->
                 if(plugin.value == spigotSpring) return@mapNotNull null
-                Unsafe.pluginRegistry.loadPlugin(plugin.value, applicationBuilder)
+                Unsafe.pluginRegistry.loadPlugin(plugin.value)
             }
             logger.info("Loading ThirdParty Plugins completed! (Success: ${plugins.size}, Failed: ${normalPlugins.size - plugins.size})")
 
