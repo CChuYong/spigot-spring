@@ -35,7 +35,7 @@ class SpringSpigotBootstrapper(
     val springSpigotLoader: URLClassLoader,
     val contextLoader: Any,
 ) : Plugin by plugin {
-    object Unsafe {
+    internal object Unsafe {
         lateinit var mainContext: GenericApplicationContext
         lateinit var pluginRegistry: SpringSpigotPluginRegistry
         lateinit var bootstrapContextLoader: Any
@@ -55,16 +55,12 @@ class SpringSpigotBootstrapper(
 
             loaderMap[pluginData] = fn
             bootstrapContextLoader::class.java.getDeclaredMethod("addNewLoader", String::class.java, java.util.function.Function::class.java)
-                .apply {
-                    invoke(bootstrapContextLoader, pluginData.description.name, fn)
-                }
+                .invoke(bootstrapContextLoader, pluginData.description.name, fn)
         }
 
         fun unRegisterClassLoader(pluginData: SpigotSpringChildPluginData) {
             bootstrapContextLoader::class.java.getDeclaredMethod("removeLoader", String::class.java)
-                .apply {
-                    invoke(bootstrapContextLoader, pluginData.description.name)
-                }
+                .invoke(bootstrapContextLoader, pluginData.description.name)
         }
     }
 
