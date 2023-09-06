@@ -9,6 +9,9 @@ class SpigotSpringChildInitializer(
     private val data: SpigotSpringChildPluginData,
 ) : ApplicationContextInitializer<GenericApplicationContext> {
     override fun initialize(applicationContext: GenericApplicationContext) {
-        applicationContext.registerBean(SpigotSpringChildPluginData::class.java, Supplier { data }, BeanDefinitionCustomizer{ ef -> ef.isPrimary = true })
+        applicationContext.registerBean(
+            SpigotSpringChildPluginData::class.java,
+            Supplier { data },
+            BeanDefinitionCustomizer { ef -> ef.isPrimary = true })
     }
 }

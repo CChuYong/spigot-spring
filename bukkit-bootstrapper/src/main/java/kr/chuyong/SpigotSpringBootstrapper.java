@@ -1,6 +1,5 @@
 package kr.chuyong;
 
-import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,8 +14,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public class SpigotSpringBootstrapper extends JavaPlugin {
     String fileName = "bukkit-api-0.0.2-SNAPSHOT-all.jar";
@@ -79,7 +76,7 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
             throw new RuntimeException(e);
         }
 
-        if(defaultLoader instanceof PaperCustomPluginLoader loader) {
+        if (defaultLoader instanceof PaperCustomPluginLoader loader) {
             loader.close();
         }
     }

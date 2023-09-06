@@ -27,21 +27,21 @@ class SpigotSpringPluginsCommand(
     @CommandMapping("unload", minArgs = 1, maxArgs = 1, console = true)
     fun unloadPlugin(sender: CommandSender, args: Array<String>) {
         val pluginMeta = pluginRegistry.getPluginMeta(args[0])
-        if(pluginMeta == null) {
+        if (pluginMeta == null) {
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin not found.")
             return
         }
 
         try {
             val plugin = pluginRegistry.getPlugin(args[0])
-            if(plugin != null) {
+            if (plugin != null) {
                 pluginRegistry.unloadPlugin(plugin)
             } else {
                 pluginRegistry.unloadPluginData(pluginMeta)
             }
 
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${pluginMeta.description.name} successfully unloaded.")
-        }catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             sender.sendMessage("§7[§bSpringSpigot§7] §fAn error occured while unloading plugin.")
         }
@@ -51,7 +51,7 @@ class SpigotSpringPluginsCommand(
     @CommandMapping("disable", minArgs = 1, maxArgs = 1, console = true)
     fun disablePlugin(sender: CommandSender, args: Array<String>) {
         val pluginMeta = pluginRegistry.getPluginMeta(args[0])
-        if(pluginMeta == null) {
+        if (pluginMeta == null) {
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin not found.")
             return
         }
@@ -65,17 +65,17 @@ class SpigotSpringPluginsCommand(
             val plugin = pluginRegistry.getPlugin(args[0])!!
             pluginRegistry.disablePlugin(plugin)
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${plugin.name} successfully disabled.")
-        }catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             sender.sendMessage("§7[§bSpringSpigot§7] §fAn error occured while disabling plugin.")
         }
 
     }
 
-    @CommandMapping("enable",console = true,  minArgs = 1, maxArgs = 1)
+    @CommandMapping("enable", console = true, minArgs = 1, maxArgs = 1)
     fun enablePlugin(sender: CommandSender, args: Array<String>) {
         val pluginMeta = pluginRegistry.getPluginMeta(args[0])
-        if(pluginMeta == null) {
+        if (pluginMeta == null) {
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin not found.")
             return
         }
@@ -89,17 +89,17 @@ class SpigotSpringPluginsCommand(
             pluginRegistry.enablePlugin(pluginMeta)
             pluginRegistry.wireContexts()
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${pluginMeta.description.name} successfully enabled.")
-        }catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             sender.sendMessage("§7[§bSpringSpigot§7] §fAn error occured while enabling plugin.")
         }
 
     }
 
-    @CommandMapping("reload", console = true,  minArgs = 1, maxArgs = 1)
+    @CommandMapping("reload", console = true, minArgs = 1, maxArgs = 1)
     fun reloadPlugin(sender: CommandSender, args: Array<String>) {
         val pluginMeta = pluginRegistry.getPluginMeta(args[0])
-        if(pluginMeta == null) {
+        if (pluginMeta == null) {
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin not found.")
             return
         }
@@ -111,7 +111,7 @@ class SpigotSpringPluginsCommand(
 
         try {
             val plugin = pluginRegistry.getPlugin(args[0])
-            if(plugin != null) {
+            if (plugin != null) {
                 pluginRegistry.unloadPlugin(plugin)
             } else {
                 pluginRegistry.unloadPluginData(pluginMeta)
@@ -125,7 +125,7 @@ class SpigotSpringPluginsCommand(
 
 
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${pluginMeta.description.name} successfully reloaded.")
-        }catch(e: Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
             sender.sendMessage("§7[§bSpringSpigot§7] §fAn error occured while enabling plugin.")
         }

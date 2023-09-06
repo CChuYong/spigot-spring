@@ -38,7 +38,9 @@ class MySpecialPlugin : JavaPlugin() {
 ## Known issues
 
 ### SpigotSpring throws `java.lang.IllegalAccessError` while loading
+
 Paper API provides custom implementation for PluginClassLoaders.
 However, Spigot API restricts inheritance of PluginClassLoader.  
 Thus, we created small java-agent which modify PluginClassLoader's Access Modifier to public.  
-If your server uses Spigot, you should download `spigot-class-modifier` and start bukkit with flag `-javaagent:spigot-class-modifier.jar`.
+If your server uses Spigot, you should download `spigot-class-modifier` and start bukkit with
+flag `-javaagent:spigot-class-modifier.jar`.

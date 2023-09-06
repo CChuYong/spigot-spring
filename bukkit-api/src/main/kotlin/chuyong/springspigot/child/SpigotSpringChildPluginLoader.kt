@@ -6,7 +6,6 @@ import org.bukkit.plugin.Plugin
 import org.bukkit.plugin.PluginDescriptionFile
 import org.bukkit.plugin.PluginLoader
 import org.bukkit.plugin.RegisteredListener
-import org.springframework.context.support.AbstractApplicationContext
 import java.io.File
 import java.util.regex.Pattern
 

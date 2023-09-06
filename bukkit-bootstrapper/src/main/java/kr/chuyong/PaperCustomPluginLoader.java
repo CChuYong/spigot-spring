@@ -9,9 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -71,9 +69,9 @@ public class PaperCustomPluginLoader implements ConfiguredPluginClassLoader {
     public void close() {
         group.remove(this);
         PaperClassLoaderStorage.instance().unregisterClassloader(this);
-        try{
+        try {
             mainClassLoader.close();
-        }catch(Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
@@ -82,7 +80,7 @@ public class PaperCustomPluginLoader implements ConfiguredPluginClassLoader {
         childClassLoaders.put(pluginName, classLoader);
     }
 
-    public void removeLoader(String pluginName){
+    public void removeLoader(String pluginName) {
         childClassLoaders.remove(pluginName);
     }
 }

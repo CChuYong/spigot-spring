@@ -1,13 +1,6 @@
 package chuyong.springspigot.web
 
-import org.slf4j.Logger
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.reactive.HandlerMapping
-import org.springframework.web.reactive.config.DelegatingWebFluxConfiguration
-import org.springframework.web.reactive.function.server.*
-import org.springframework.web.reactive.function.server.support.HandlerFunctionAdapter
-import org.springframework.web.reactive.function.server.support.RouterFunctionMapping
 
 
 @Configuration

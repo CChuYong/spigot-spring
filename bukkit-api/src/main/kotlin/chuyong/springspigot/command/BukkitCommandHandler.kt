@@ -1,6 +1,5 @@
 package chuyong.springspigot.command
 
-import chuyong.springspigot.child.SpigotSpringChildPluginData
 import chuyong.springspigot.command.annotation.CommandExceptionHandler
 import chuyong.springspigot.command.annotation.CommandMapping
 import chuyong.springspigot.command.data.CommandConfig

@@ -43,7 +43,10 @@ data class SpigotSpringChildPluginData(
 
         ).apply {
             classLoader = null
-            initLoader(SpringSpigotBootstrapper.Unsafe.selfClassLoader, SpringSpigotBootstrapper.Unsafe.parentClassLoader)
+            initLoader(
+                SpringSpigotBootstrapper.Unsafe.selfClassLoader,
+                SpringSpigotBootstrapper.Unsafe.parentClassLoader
+            )
         }
     }
 
@@ -57,7 +60,10 @@ data class SpigotSpringChildPluginData(
         )
         val pluginClazz = Class.forName(description.main, true, classLoader)
         isEscalated = pluginClazz.isAnnotationPresent(EnableEscalatedSpringSpigotSupport::class.java)
-        mainClass = if(isEscalated) PluginUtil.createEscaltedMockCLazz(pluginClazz, classLoader!!) else PluginUtil.createMockClazz(pluginClazz, classLoader!!)
+        mainClass = if (isEscalated) PluginUtil.createEscaltedMockCLazz(
+            pluginClazz,
+            classLoader!!
+        ) else PluginUtil.createMockClazz(pluginClazz, classLoader!!)
     }
 
     fun getContextApplicationProperties(): Properties? {

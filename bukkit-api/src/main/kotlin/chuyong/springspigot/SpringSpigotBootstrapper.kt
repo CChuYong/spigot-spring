@@ -4,7 +4,6 @@ import chuyong.springspigot.child.SpigotSpringChildPluginData
 import chuyong.springspigot.child.SpringSpigotPluginRegistry
 import chuyong.springspigot.config.BukkitConfigPropertySource
 import chuyong.springspigot.util.PluginUtil
-import chuyong.springspigot.util.SpringSpigotContextClassLoader
 import chuyong.springspigot.util.YamlPropertiesFactory
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.bukkit.Bukkit
@@ -41,7 +40,8 @@ class SpringSpigotBootstrapper(
         lateinit var bootstrapContextLoader: Any
         lateinit var parentClassLoader: URLClassLoader
         lateinit var selfClassLoader: URLClassLoader
-        private val loaderMap = mutableMapOf<SpigotSpringChildPluginData, java.util.function.Function<String, Class<*>?>>()
+        private val loaderMap =
+            mutableMapOf<SpigotSpringChildPluginData, java.util.function.Function<String, Class<*>?>>()
 
 
         fun registerClassLoader(pluginData: SpigotSpringChildPluginData) {
@@ -54,7 +54,11 @@ class SpringSpigotBootstrapper(
             }
 
             loaderMap[pluginData] = fn
-            bootstrapContextLoader::class.java.getDeclaredMethod("addNewLoader", String::class.java, java.util.function.Function::class.java)
+            bootstrapContextLoader::class.java.getDeclaredMethod(
+                "addNewLoader",
+                String::class.java,
+                java.util.function.Function::class.java
+            )
                 .invoke(bootstrapContextLoader, pluginData.description.name, fn)
         }
 
@@ -111,7 +115,7 @@ class SpringSpigotBootstrapper(
 
                 PluginUtil.unloadPluginPaper(plugin)
                 data.initLoader(selfLoader, springSpigotLoader)
-                if(!data.isEscalated)
+                if (!data.isEscalated)
                     Unsafe.registerClassLoader(data)
                 else {
                     val tmp = data.classLoader
@@ -157,7 +161,6 @@ class SpringSpigotBootstrapper(
             }
 
 
-
             val applicationBuilder = SpringApplicationBuilder(
                 DefaultResourceLoader(selfLoader),
                 twoClazz, *escalatedClazzes.toTypedArray()
@@ -196,7 +199,7 @@ class SpringSpigotBootstrapper(
 
 
             val plugins = normalPlugins.mapNotNull { plugin ->
-                if(plugin.value == spigotSpring) return@mapNotNull null
+                if (plugin.value == spigotSpring) return@mapNotNull null
                 Unsafe.pluginRegistry.loadPlugin(plugin.value)
             }
             logger.info("Loading ThirdParty Plugins completed! (Success: ${plugins.size}, Failed: ${normalPlugins.size - plugins.size})")
@@ -209,6 +212,7 @@ class SpringSpigotBootstrapper(
         }, executor).get()
         executor.shutdown()
     }
+
     private fun getPrimaryApplicationProperties(): Properties {
         if (!dataFolder.exists()) dataFolder.mkdirs()
         val configurationFile = FileSystemResource(File(dataFolder, "application.yml"))

@@ -92,7 +92,7 @@ tasks.register("printVersion") {
 tasks.register("printMeta") {
     doLast {
         println(baseVersion)
-        val version = if(isRelease) baseVersion else version
+        val version = if (isRelease) baseVersion else version
         println("$version")
     }
 }

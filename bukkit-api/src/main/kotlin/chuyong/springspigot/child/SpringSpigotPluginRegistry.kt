@@ -22,7 +22,6 @@ import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ApplicationListener
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.event.ContextRefreshedEvent
-import org.springframework.context.event.EventListener
 import org.springframework.core.env.PropertiesPropertySource
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.stereotype.Component
@@ -97,7 +96,7 @@ class SpringSpigotPluginRegistry(
         commandRegistry.unregisterCommands(plugin.name)
 
         val context = plugin.context
-        if(context is ConfigurableApplicationContext) {
+        if (context is ConfigurableApplicationContext) {
             context.close()
         }
     }
@@ -120,7 +119,7 @@ class SpringSpigotPluginRegistry(
         plugins.values.forEach { plugin ->
             logger.info("Unloading plugin ${plugin.name}...")
             val context = plugin.context
-            if(context is ConfigurableApplicationContext) {
+            if (context is ConfigurableApplicationContext) {
                 context.close()
             }
         }
