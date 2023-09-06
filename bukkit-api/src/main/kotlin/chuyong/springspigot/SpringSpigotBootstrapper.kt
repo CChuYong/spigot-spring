@@ -109,7 +109,7 @@ class SpringSpigotBootstrapper(
                 Bukkit.getConsoleSender()
                     .sendMessage("§f§l[§6SpringSpigot§f§l] Disabling plugin " + plugin.name + " To load from SpringSpigot..")
 
-                PluginUtil.unloadPlugin(plugin)
+                PluginUtil.unloadPluginPaper(plugin)
                 data.initLoader(selfLoader, springSpigotLoader)
                 if(!data.isEscalated)
                     Unsafe.registerClassLoader(data)
