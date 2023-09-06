@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender
 
 @CommandController
 @CommandMapping("ss", child = "plugins", console = true, op = true)
-class SpigotSpringCommand(
+class SpigotSpringPluginsCommand(
     private val pluginRegistry: SpringSpigotPluginRegistry,
 ) {
     @CommandMapping("list", console = true)
@@ -87,6 +87,7 @@ class SpigotSpringCommand(
 
         try {
             pluginRegistry.enablePlugin(pluginMeta)
+            pluginRegistry.wireContexts()
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${pluginMeta.description.name} successfully enabled.")
         }catch(e: Exception) {
             e.printStackTrace()
@@ -119,6 +120,8 @@ class SpigotSpringCommand(
 
             val newMeta = pluginMeta.rebuildNew()
             pluginRegistry.loadPlugin(newMeta)
+
+            pluginRegistry.wireContexts()
 
 
             sender.sendMessage("§7[§bSpringSpigot§7] §fPlugin ${pluginMeta.description.name} successfully reloaded.")
