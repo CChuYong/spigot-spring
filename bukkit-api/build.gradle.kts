@@ -61,25 +61,10 @@ dependencies {
     api(project(":core-api"))
     compileOnly(project(":spigot-class-modifier"))
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT")
-    //compileOnly(files("libs/spigot-api-1.19.4-R0.1-SNAPSHOT.jar"))
-
-    compileOnly("org.springframework.boot:spring-boot-starter:3.1.1") {
-//        exclude(module = "spring-boot-starter-logging")
-//        exclude(module = "logback-classic")
-    }
-    compileOnly("org.springframework.boot:spring-boot-starter-aop:3.1.1") {
-//        exclude(module = "spring-boot-starter-logging")
-//        exclude(module = "logback-classic")
-    }
-    compileOnly("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1") {
-//        exclude(module = "spring-boot-starter-logging")
-//        exclude(module = "logback-classic")
-    }
-    compileOnly("org.springframework.boot:spring-boot-starter-webflux:3.1.1") {
-//        exclude(module = "spring-boot-starter-logging")
-//        exclude(module = "logback-classic")
-    }
-
+    compileOnly("org.springframework.boot:spring-boot-starter:3.1.1")
+    compileOnly("org.springframework.boot:spring-boot-starter-aop:3.1.1")
+    compileOnly("org.springframework.boot:spring-boot-starter-data-jpa:3.1.1")
+    compileOnly("org.springframework.boot:spring-boot-starter-webflux:3.1.1")
     compileOnly("org.apache.commons:commons-lang3:3.12.0")
     compileOnly("com.querydsl:querydsl-jpa:5.0.0:jakarta")
     compileOnly("mysql:mysql-connector-java:8.0.28")
