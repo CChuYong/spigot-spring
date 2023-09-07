@@ -11,8 +11,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSigner;
 import java.security.CodeSource;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -141,4 +140,15 @@ public class SpringSpigotContextClassLoader extends URLClassLoader {
         }
     }
 
+    @Override
+    public Enumeration<URL> getResources(String name) throws IOException {
+        Enumeration<URL> urls = super.getResources(name);
+        if(name.equals("META-INF/spring.factories")) {
+            //Convert enumeration to list
+            List<URL> urlList = Collections.list(urls);
+            urlList.removeIf(url -> !url.getPath().contains(jar.getName()));
+            return Collections.enumeration(urlList);
+        }
+        return urls;
+    }
 }
