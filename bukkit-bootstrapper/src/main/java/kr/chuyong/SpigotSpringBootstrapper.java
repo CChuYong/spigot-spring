@@ -13,10 +13,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.util.List;
 
 public class SpigotSpringBootstrapper extends JavaPlugin {
+    String libPath = "libs/";
     String fileName = "bukkit-api-0.0.2-SNAPSHOT-all.jar";
+    String sha256FileName = libPath + fileName + ".sha256";
     Object mainInstance;
     Method stopMethod;
     Object defaultLoader;
@@ -38,8 +41,11 @@ public class SpigotSpringBootstrapper extends JavaPlugin {
                 libsPath.mkdirs();
 
             File jarPath = new File(libsPath, fileName);
-            if (!jarPath.exists()) {
-                InputStream ins = getResource(fileName);
+            InputStream shaIns = getResource(sha256FileName);
+            assert shaIns != null;
+            String sha256 = new String(shaIns.readAllBytes());
+            if (!jarPath.exists() || !sha256.equals(FileUtils.extractFileHashSHA256(jarPath))) {
+                InputStream ins = getResource(libPath + fileName);
                 try (FileOutputStream fos = new FileOutputStream(jarPath)) {
                     byte[] buf = new byte[1024];
                     int len;

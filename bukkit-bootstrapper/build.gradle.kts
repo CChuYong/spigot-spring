@@ -21,7 +21,12 @@ dependencies {
 }
 
 tasks.getByName<Jar>("jar") {
-    from(project(":bukkit-api").tasks.getByName("shadowJar"))
+    from(project(":bukkit-api").tasks.getByName("shadowJar")) {
+        into("libs")
+    }
+    from(project(":bukkit-api").tasks.getByName("generateSha256")) {
+        into("libs")
+    }
 }
 
 tasks.getByName<Test>("test") {
