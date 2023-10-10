@@ -18,14 +18,14 @@ class HQFrameworkDependencyProvider : ExternalDependencyProvider {
         val registry = getRegistryFromPlugin(qualifier)
         registry::class.java.getMethod("getComponent", KClass::class.java).let {
             it.isAccessible = true
-            return it.invoke(registry, clazz) as T
+            return it.invoke(registry, clazz.kotlin) as T
         }
     }
 
     private fun getRegistryFromPlugin(pluginName: String): Any {
         val pluginzz = Bukkit.getPluginManager().getPlugin(pluginName) ?: throw RuntimeException()
         return try {
-            val m = pluginzz::class.java.getDeclaredMethod("getComponentRegistry")
+            val m = pluginzz::class.java.getMethod("getComponentRegistry")
             m.isAccessible = true
             m.invoke(pluginzz)
         } catch (ex: Exception) {

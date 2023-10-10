@@ -82,10 +82,12 @@ class SpringSpigotPluginRegistry(
                 }
             })
             .listeners(ApplicationListener<ContextRefreshedEvent> { event ->
-                onPostInitialize(event.applicationContext)
+
             })
             .run()
+        onPostInitialize(context)
         logger.info("Loaded Plugin ${pluginData.description.name}")
+
         return context
     }
 
@@ -162,6 +164,7 @@ class SpringSpigotPluginRegistry(
     }
 
     fun onPostInitialize(applicationContext: ApplicationContext) {
+        logger.info("Post-Initializing plugin...")
         val parentContext = SpringSpigotBootstrapper.Unsafe.mainContext
         val plugin = applicationContext.getBean(Plugin::class.java)
 
